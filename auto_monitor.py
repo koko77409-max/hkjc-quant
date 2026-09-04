@@ -1,73 +1,122 @@
-from datetime import datetime, timedelta
-import io
-import os
-import sys
+from datetime import datetime, timezone, timedelta
+import sqlite3
 import time
-from live_smart_betslip import fetch_race_data, run_smart_betslip
-
-# 目標賽事日期 (預設監控下一個賽馬日，如 2026/09/06 開鑼日)
-TARGET_DATE = "2026/09/06"
-CHECK_INTERVAL_SECONDS = 1200  # 每 20 分鐘檢查一次
+from live_smart_betslip import DB_PATH, fetch_race_data, get_upcoming_local_race
+import pandas as pd
 
 
-def is_racecard_published(target_date: str) -> bool:
-    """檢查馬會是否已上載第 1 場排位表"""
-    df = fetch_race_data(target_date, 1)
-    return not df.empty and len(df) >= 4
-
-
-def generate_and_save_report(target_date: str):
-    """執行策略計算並將終端機輸出同步寫入文字檔"""
-    clean_date_str = target_date.replace("/", "")
-    timestamp = datetime.now().strftime("%H%M")
-    filename = f"betslip_{clean_date_str}_{timestamp}.txt"
-
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] 正在生成量化投注單...")
-
-    # 捕捉終端機 stdout 輸出
-    old_stdout = sys.stdout
-    sys.stdout = buffer = io.StringIO()
-
-    try:
-        run_smart_betslip(target_date=target_date, bankroll=10000.0)
-    finally:
-        output_content = buffer.getvalue()
-        sys.stdout = old_stdout
-
-    # 同步印在終端機並存入 txt 檔案
-    print(output_content)
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(output_content)
-
-    print(f"✅ 報告已成功儲存至: {os.path.abspath(filename)}")
-    # 發出 Windows 系統提示音 (嗶聲)
-    sys.stdout.write("\a\a\a")
-
-
-def main():
-    print("=" * 65)
-    print(f"   🏇 香港賽馬排位自動監控系統啟動")
-    print(f"   監控目標賽日 : {TARGET_DATE}")
-    print(
-        f"   輪詢頻率     : 每 {CHECK_INTERVAL_SECONDS // 60} 分鐘自動檢查一次"
+def init_odds_table():
+    """初始化賠率歷史流水表記錄庫"""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS odds_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        race_date TEXT,
+        race_no INTEGER,
+        horse_no TEXT,
+        horse_name TEXT,
+        win_odds REAL,
+        record_time TEXT
     )
-    print("=" * 65)
+    """)
+    cursor.execute(
+        'CREATE INDEX IF NOT EXISTS idx_odds_time ON odds_history(race_date,'
+        ' race_no, horse_no, record_time)'
+    )
+    conn.commit()
+    conn.close()
 
-    while True:
-        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(f"[{current_time}] 正在檢查馬會網頁是否已發布排位...")
 
-        if is_racecard_published(TARGET_DATE):
-            print(f"\n🎉 偵測到【 {TARGET_DATE} 】排位已正式發布！立即執行量化分析...")
-            generate_and_save_report(TARGET_DATE)
-            print("\n任務完成，監控腳本正常結束。")
+def scan_and_record_odds(target_date: str, venue_code: str) -> int:
+    """掃描當前全場賠率並寫入資料庫"""
+    hkt_now = datetime.now(timezone(timedelta(hours=8))).strftime(
+        '%Y-%m-%d %H:%M:%S'
+    )
+    conn = sqlite3.connect(DB_PATH)
+
+    records = []
+    for r_no in range(1, 12):
+        df_race = fetch_race_data(target_date, r_no, venue_code)
+        if df_race.empty:
             break
-        else:
-            print(
-                f"⏳ 尚未公布排位。將於 {CHECK_INTERVAL_SECONDS // 60} 分鐘後重試...\n"
-            )
-            time.sleep(CHECK_INTERVAL_SECONDS)
+
+        valid_odds = df_race[
+            df_race['win_odds'].notnull() & (df_race['win_odds'] > 1.0)
+        ]
+        for _, row in valid_odds.iterrows():
+            records.append((
+                target_date,
+                int(r_no),
+                str(row['horse_no']),
+                str(row['horse_name']),
+                float(row['win_odds']),
+                hkt_now,
+            ))
+        time.sleep(0.2)
+
+    if records:
+        conn.executemany(
+            """
+        INSERT INTO odds_history (race_date, race_no, horse_no, horse_name, win_odds, record_time)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """,
+            records,
+        )
+        conn.commit()
+        print(
+            f'[{hkt_now}] 成功記錄 {target_date} 共 {len(records)} 筆即時賠率。'
+        )
+    else:
+        print(f'[{hkt_now}] 馬會尚未開售彩池，未有有效賠率。')
+
+    conn.close()
+    return len(records)
 
 
-if __name__ == "__main__":
-    main()
+def get_odds_movement_summary(target_date: str) -> pd.DataFrame:
+    """計算各匹馬的初盤開售賠率、最新賠率與大戶落飛跌幅"""
+    conn = sqlite3.connect(DB_PATH)
+    query = f"""
+    SELECT race_no, horse_no, horse_name, win_odds, record_time
+    FROM odds_history
+    WHERE race_date = '{target_date}'
+    ORDER BY record_time ASC
+    """
+    df = pd.read_sql_query(query, conn)
+    conn.close()
+
+    if df.empty:
+        return pd.DataFrame()
+
+    summary = []
+    for (r_no, h_no), group in df.groupby(['race_no', 'horse_no']):
+        open_odds = group.iloc[0]['win_odds']
+        current_odds = group.iloc[-1]['win_odds']
+        h_name = group.iloc[-1]['horse_name']
+
+        # 計算跌幅：若 10.0 跌至 5.0， drop_pct = (10 - 5) / 10 = +50% (正數代表落飛，負數代表冷卻回升)
+        drop_pct = (
+            ((open_odds - current_odds) / open_odds) * 100.0
+            if open_odds > 0
+            else 0.0
+        )
+
+        summary.append({
+            'race_no': int(r_no),
+            'horse_no': str(h_no),
+            'horse_name': h_name,
+            'open_odds': open_odds,
+            'current_odds': current_odds,
+            'drop_pct': drop_pct,
+            'records_count': len(group),
+        })
+
+    return pd.DataFrame(summary)
+
+
+if __name__ == '__main__':
+    init_odds_table()
+    target_date, venue_code = get_upcoming_local_race()
+    print(f'🚀 啟動即時賠率記錄，目標賽事：{target_date} ({venue_code})')
+    scan_and_record_odds(target_date, venue_code)

@@ -1,18 +1,25 @@
 name: Deploy HKJC Betslip Web
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: # 手機手動一鍵刷新
   push:
-    branches: [ main ]
+    branches: [ main ] # 本地 git push 自動觸發
   schedule:
+    # 1. 星期日日馬 (UTC 02:30, 04:00, 04:30 = 香港 10:30, 12:00, 12:30 定時記錄與追蹤)
     - cron: '30 2 * * 0'
-    - cron: '15 4 * * 0'
+    - cron: '0 4 * * 0'
+    - cron: '30 4 * * 0'
+
+    # 2. 星期三夜馬 (UTC 09:30, 10:30, 11:00 = 香港 17:30, 18:30, 19:00 定時記錄與追蹤)
     - cron: '30 9 * * 3'
-    - cron: '45 10 * * 3'
+    - cron: '30 10 * * 3'
+    - cron: '0 11 * * 3'
+
+    # 3. 週五下午初盤掃描 (UTC 06:00 = 香港 14:00)
     - cron: '0 6 * * 5'
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -36,9 +43,17 @@ jobs:
         run: |
           pip install numpy pandas requests lightgbm joblib lxml html5lib scikit-learn
 
-      - name: Auto Detect Race Day and Generate Mobile Web
+      - name: Scan Odds and Generate Mobile Web
         run: |
           python generate_html.py
+
+      - name: Commit Updated Database
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add hkjc_racing.db
+          git commit -m "chore: persist odds tracking snapshot [skip ci]" || echo "No DB changes"
+          git push
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
