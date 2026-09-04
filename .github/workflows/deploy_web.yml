@@ -32,7 +32,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          pip install numpy pandas requests lightgbm joblib lxml html5lib
+          pip install numpy pandas requests lightgbm joblib lxml html5lib scikit-learn
 
       - name: Auto Detect Race Day and Generate Mobile Web
         run: |
