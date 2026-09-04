@@ -2,6 +2,8 @@ name: Deploy HKJC Betslip Web
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ main ]
   schedule:
     - cron: '30 2 * * 0'
     - cron: '15 4 * * 0'
