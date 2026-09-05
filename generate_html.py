@@ -1,8 +1,19 @@
+import os
+import json
+import sqlite3
+import pandas as pd
+from datetime import datetime
+from live_smart_betslip import (
+    load_model_artifacts,
+    fetch_race_data,
+    process_race_predictions,
+    calculate_exotic_pools
+)
 
-def generate_exotics_html(all_dfs):
-    """生成四重彩/四連環、孖T/三T、六寶獎卡片"""
-    from live_smart_betslip import calculate_exotic_pools
-    exotics = calculate_exotic_pools(all_dfs)
+def build_exotics_html_card(exotics):
+    """渲染四重彩/四連環、孖T/三T、六寶獎卡片"""
+    if not exotics:
+        return ""
     
     html = """
     <div style="margin-bottom: 25px; background: linear-gradient(135deg, #1c1917 0%, #291e10 100%); border: 1px solid #f59e0b; border-radius: 12px; padding: 18px; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.15);">
@@ -71,686 +82,142 @@ def generate_exotics_html(all_dfs):
     html += "</div></div>"
     return html
 
-
-def :
-    """渲染大彩池專區 HTML"""
-    if not exotics_data:
-        return ""
+def main():
+    model, features = load_model_artifacts()
+    target_race_date = "2026/09/06"
     
-    html = """
-    <div style="margin-top: 30px; background: #1a1d24; border: 1px solid #ffaa00; border-radius: 12px; padding: 20px;">
-        <h3 style="color: #ffaa00; margin-top: 0; display: flex; align-items: center; gap: 8px;">
-            <span>🎰</span> 非對稱大彩池量化推薦 (Exotic Pools)
-        </h3>
-        <p style="color: #8b949e; font-size: 13px;">利用蒙地卡羅模擬與 Henery 機率剪枝，嚴格控制總注數，專攻長線非對稱高回報組合：</p>
-        
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 15px; margin-top: 15px;">
-    """
+    all_race_dfs = {}
+    races_data = []
     
-    # 1. 四連環 / 四重彩
-    if exotics_data.get('first4_quartet'):
-        html += """
-        <div style="background: #24292f; border-radius: 8px; padding: 12px; border-left: 4px solid #3b82f6;">
-            <div style="font-weight: bold; color: #58a6ff; margin-bottom: 8px;">🎯 精選四連環 / 四重彩</div>
-        """
-        for item in exotics_data['first4_quartet'][:3]:
-            html += f"""
-            <div style="font-size: 13px; margin-bottom: 8px; border-bottom: 1px solid #30363d; padding-bottom: 6px;">
-                <span style="background: #1f6feb; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px;">第 {item['race_no']} 場</span>
-                <span style="color: #f0f6fc; font-weight: bold; margin-left: 6px;">{item['pool']}</span><br>
-                <div style="color: #ffea79; font-family: monospace; margin: 3px 0;">{item['structure']}</div>
-                <div style="color: #8b949e; font-size: 11px;">注數: {item['bets_count']} 注 (${item['suggested_cost']}) | {item['edge_reason']}</div>
+    for r_no in range(1, 11):
+        df = fetch_race_data(target_race_date, r_no)
+        if not df.empty:
+            df_scored, bets = process_race_predictions(df, model, features, target_race_date, r_no)
+            all_race_dfs[r_no] = df_scored
+            races_data.append((r_no, df_scored, bets))
+    
+    # 渲染大彩池卡片
+    exotics_data = calculate_exotic_pools(all_race_dfs)
+    exotics_html = build_exotics_html_card(exotics_data)
+    
+    # 組合卡片與賽事詳情
+    cards_html = ""
+    for r_no, df_scored, bets in races_data:
+        # 單場賽事卡片渲染
+        cards_html += f"""
+        <div class="race-card" style="background: #161b22; border: 1px solid #30363d; border-radius: 10px; margin-bottom: 20px; padding: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #21262d; padding-bottom: 8px; margin-bottom: 12px;">
+                <h3 style="margin: 0; color: #58a6ff;">第 {r_no} 場</h3>
+                <span style="font-size: 12px; color: #8b949e;">出賽馬匹: {len(df_scored)} 匹</span>
             </div>
-            """
-        html += "</div>"
-
-    # 2. 三 T 與 孖 T
-    html += """
-    <div style="background: #24292f; border-radius: 8px; padding: 12px; border-left: 4px solid #10b981;">
-        <div style="font-weight: bold; color: #3fb950; margin-bottom: 8px;">👑 孖 T / 三 T 膽拖剪枝</div>
-    """
-    if exotics_data.get('triple_trio'):
-        tt = exotics_data['triple_trio'][0]
-        html += f"""
-        <div style="font-size: 13px; margin-bottom: 8px; border-bottom: 1px solid #30363d; padding-bottom: 6px;">
-            <span style="background: #238636; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px;">三 T (R4-R5-R6)</span><br>
-            <div style="color: #7ee787; font-family: monospace; margin: 3px 0; font-size: 12px;">{tt['structure']}</div>
-            <div style="color: #8b949e; font-size: 11px;">注數: {tt['bets_count']} 注 (${tt['suggested_cost']}) | {tt['note']}</div>
-        </div>
         """
-    if exotics_data.get('double_trio'):
-        dt = exotics_data['double_trio'][0]
-        html += f"""
-        <div style="font-size: 13px; margin-bottom: 8px;">
-            <span style="background: #238636; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px;">孖 T (R4-R5)</span><br>
-            <div style="color: #7ee787; font-family: monospace; margin: 3px 0; font-size: 12px;">{dt['structure']}</div>
-            <div style="color: #8b949e; font-size: 11px;">注數: {dt['bets_count']} 注 (${dt['suggested_cost']}) | {dt['note']}</div>
-        </div>
-        """
-    html += "</div>"
-
-    # 3. 六寶獎
-    if exotics_data.get('six_up'):
-        six = exotics_data['six_up'][0]
-        html += f"""
-        <div style="background: #24292f; border-radius: 8px; padding: 12px; border-left: 4px solid #a855f7;">
-            <div style="font-weight: bold; color: #d2a8ff; margin-bottom: 8px;">⚡ 六寶獎 (Six Up, R5-R10)</div>
-            <div style="font-size: 13px; margin-bottom: 8px;">
-                <div style="color: #e2c5ff; font-family: monospace; margin: 3px 0; font-size: 12px;">{six['structure']}</div>
-                <div style="color: #8b949e; font-size: 11px;">總注數: {six['bets_count']} 注 (${six['suggested_cost']}) | {six['note']}</div>
-            </div>
-        </div>
-        """
-        
-    html += """
-        </div>
-    </div>
-    """
-    return html
-
-from datetime import datetime, timezone, timedelta
-import io
-import os
-import re
-import sys
-from auto_monitor import (
-    get_odds_movement_summary,
-    init_odds_table,
-    scan_and_record_odds,
-)
-from live_smart_betslip import get_upcoming_local_race, run_smart_betslip
-import pandas as pd
-
-# 1. 偵測賽事並記錄最新盤口快照
-target_race_date, target_venue = get_upcoming_local_race()
-venue_text = '沙田 (ST)' if target_venue == 'ST' else '跑馬地 (HV)'
-print(f'🏇 鎖定賽事: {target_race_date} {venue_text}')
-
-init_odds_table()
-scan_and_record_odds(target_race_date, target_venue)
-movement_df = get_odds_movement_summary(target_race_date)
-
-# 2. 捕捉量化推理輸出
-old_stdout = sys.stdout
-sys.stdout = buffer = io.StringIO()
-
-try:
-    run_smart_betslip(
-        target_date=target_race_date,
-        venue_code=target_venue,
-        bankroll=10000.0,
-    )
-finally:
-    raw_text = buffer.getvalue()
-    sys.stdout = old_stdout
-
-hkt_now = datetime.now(timezone(timedelta(hours=8))).strftime(
-    '%Y-%m-%d %H:%M:%S'
-)
-
-# -------------------------------------------------------------
-# 3. 解析四大實戰策略
-# -------------------------------------------------------------
-
-# 【策略一：+EV 獨贏】
-strat1_html = ''
-if '彩池尚未開售' in raw_text or '未開盤' in raw_text:
-    strat1_html = """
-    <div class="pending-box">
-        <div class="pending-title">⏳ 盤口掃描中：暫無符合 +EV 甜點單</div>
-        <div class="pending-desc">+EV 獨贏單注需在「賠率 1.5–3.0 且 Edge &ge; 1.00」甜蜜點下注，當前場次未達「勝率 ≥ 20% 且 Edge ≥ 1.00」門檻。</div>
-    </div>
-    """
-else:
-    s1_items = re.findall(
-        r'第\s*(\d+)\s*場\s*\|\s*(\S+)\s*號\s*(\S+)\s*\|\s*賠率:\s*(\S+)\s*\|\s*模型勝率:\s*(\S+)\s*\|\s*優勢'
-        r' Edge:\s*(\S+)\s*\|\s*建議投注:\s*(\S+)',
-        raw_text,
-    )
-    if s1_items:
-        for r_no, h_no, name, odds, prob, edge, stake in s1_items:
-            strat1_html += f"""
-            <div class="win-bet-item">
-                <div class="win-left">
-                    <span class="race-tag">R{r_no}</span>
-                    <span class="win-horse">{h_no}號 {name}</span>
+        # 注單推薦
+        if bets:
+            cards_html += '<div style="margin-bottom: 12px; background: #0d1117; padding: 10px; border-radius: 6px; border-left: 3px solid #f59e0b;">'
+            for b in bets:
+                h_str = " ".join(b.get('horses', [])) if isinstance(b.get('horses'), list) else str(b.get('horses'))
+                cards_html += f"""
+                <div style="font-size: 13px; margin-bottom: 4px; display: flex; justify-content: space-between;">
+                    <span style="color: #ffaa00; font-weight: bold;">[{b.get('type')}] <span style="color: #f0f6fc;">{h_str}</span></span>
+                    <span style="color: #7ee787; font-weight: bold;">建議注碼: ${b.get('stake', 10)}</span>
                 </div>
-                <div class="win-right">
-                    <span class="win-odds">賠率 {odds}</span>
-                    <span class="win-stake">建議 {stake}</span>
-                </div>
-            </div>
-            """
-    else:
-        strat1_html = '<div class="empty-note">今日暫無符合回測甜蜜點之獨贏標的。</div>'
-
-# 【策略二：Top 3 互串 (QP Box + 單 T)】
-s2_matches = re.finditer(
-    r'第\s*(\d+)\s*場核心三甲\s*:\s*([^\n]+)\n\s*[├\+\-]?\s*🥈\s*位置 Q'
-    r' 互串[^\:]*:\s*\[(.*?)\]\s*\((.*?)\)\n\s*[└\+\-]?\s*🥇\s*單'
-    r' T[^\:]*:\s*\[(.*?)\]\s*\((.*?)\)',
-    raw_text,
-)
-
-strat2_cards_html = ''
-for m in s2_matches:
-    r_no, horses_str, qp_str, qp_cost, trio_str, trio_cost = m.groups()
-
-    h_tags = ''
-    for h in horses_str.split('+'):
-        h_clean = h.strip()
-        h_tags += f'<span class="h-chip">{h_clean}</span>'
-
-    qp_chips = ''
-    for p in qp_str.split(','):
-        p_clean = p.strip()
-        qp_chips += f'<span class="bet-chip">{p_clean}</span>'
-
-    cost_qp_match = re.search(r'共\s*(\$\d+)', qp_cost)
-    cost_qp_txt = cost_qp_match.group(1) if cost_qp_match else '$30'
-
-    strat2_cards_html += f"""
-    <div class="ticket-card">
-        <div class="ticket-header">
-            <span class="race-tag-lg">第 {r_no} 場</span>
-            <div class="h-chips-wrap">{h_tags}</div>
-        </div>
-        <div class="ticket-body">
-            <div class="ticket-row">
-                <span class="bet-badge qp">位置 Q</span>
-                <div class="chips-list">{qp_chips}</div>
-                <span class="ticket-price">3注 {cost_qp_txt}</span>
-            </div>
-            <div class="ticket-row">
-                <span class="bet-badge trio">單 T</span>
-                <div class="chips-list"><span class="bet-chip trio-chip">{trio_str.strip()}</span></div>
-                <span class="ticket-price">1注 $10</span>
-            </div>
-        </div>
-    </div>
-    """
-
-# 【策略三：超級穩膽】
-s3_match = re.search(
-    r'第\s*(\d+)\s*場\s*\|\s*超強單膽:\s*([^\(]+)\(純勝率:\s*([^\)]+)\)\n\s*[└\+\-]?\s*單膽拖腳:\s*([^\n\(]+)\((.*?)\)',
-    raw_text,
-)
-if s3_match:
-    b_race, b_horse, b_prob, legs_str, b_cost = s3_match.groups()
-    strat3_html = f"""
-    <div class="banker-card">
-        <div class="banker-header">
-            <span class="race-tag-lg">第 {b_race} 場</span>
-            <span class="banker-badge">超強單膽</span>
-            <span class="banker-horse">{b_horse.strip()}</span>
-            <span class="banker-prob">勝率 {b_prob.strip()}</span>
-        </div>
-        <div class="banker-legs">拖腳：<strong>{legs_str.strip()}</strong></div>
-        <div class="banker-cost">Q 及 QP 各買 2 注 (每注 $20，共 $80)</div>
-    </div>
-    """
-else:
-    strat3_html = (
-        '<div class="empty-note">今日無勝率超過 28% 的超級單膽場次。</div>'
-    )
-
-# 【策略四：位置過關 3 串 4】
-s4_legs = re.findall(
-    r'關次:\s*第\s*(\d+)\s*場\s*\|\s*(\S+)\s*號\s*(\S+)\s*\(純勝率:\s*([^\)]+)\)',
-    raw_text,
-)
-strat4_html = ''
-if len(s4_legs) >= 3:
-    legs_html = ''
-    for r_no, h_no, name, prob in s4_legs:
-        legs_html += f"""
-        <div class="allup-step">
-            <span class="allup-tag">R{r_no}</span>
-            <span class="allup-horse">{h_no}號 {name}</span>
-            <span class="allup-prob">勝率 {prob}</span>
-        </div>
-        """
-    strat4_html = f"""
-    <div class="allup-card">
-        <div class="allup-steps">{legs_html}</div>
-        <div class="allup-summary">
-            <span>3 串 4 位置 (PLACE)</span>
-            <span class="allup-stake">建議每注 $50 (總成本 $200)</span>
-        </div>
-    </div>
-    """
-
-# -------------------------------------------------------------
-# 4. 解析賽事排行榜與掛載賠率走勢標籤
-# -------------------------------------------------------------
-race_matches = list(
-    re.finditer(
-        r'🏇【\s*第\s*(\d+)\s*場\s*】（共\s*(\d+)\s*匹馬）\n-+\n.*?\n-+\n(.*?)(?=(?:🏇【|🎫|===|\Z))',
-        raw_text,
-        re.S,
-    )
-)
-
-races_html = ''
-nav_buttons = ''
-
-for rm in race_matches:
-    r_no = rm.group(1)
-    h_count = rm.group(2)
-    body = rm.group(3).strip()
-
-    nav_buttons += f'<a href="#race-{r_no}" class="nav-pill">R{r_no}</a>'
-    rows_html = ''
-
-    for line in body.splitlines():
-        line = line.strip()
-        if not line:
-            continue
-        m = re.match(
-            r'^\s*第\s*(\d+)\s*名\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)',
-            line,
-        )
-        if m:
-            (
-                rank,
-                h_no,
-                name,
-                draw,
-                jockey,
-                odds,
-                m_pct,
-                mkt_pct,
-                edge,
-            ) = m.groups()
-            rank_int = int(rank)
-            rank_class = f'rank-{rank_int}' if rank_int <= 3 else 'rank-other'
-            badge = f'<span class="rank-badge {rank_class}">{rank_int}</span>'
-
-            # 檢索該馬匹的賠率走勢
-            trend_badge = ''
-            if not movement_df.empty:
-                m_row = movement_df[
-                    (movement_df['race_no'] == int(r_no))
-                    & (movement_df['horse_no'] == str(h_no))
-                ]
-                if not m_row.empty:
-                    drop = m_row.iloc[0]['drop_pct']
-                    cnt = m_row.iloc[0]['records_count']
-                    if cnt > 1:
-                        if drop >= 15.0:
-                            trend_badge = f'<span class="trend-badge drop">⚡大戶 -{abs(drop):.0f}%</span>'
-                        elif drop <= -15.0:
-                            trend_badge = f'<span class="trend-badge drift">↗漂冷 +{abs(drop):.0f}%</span>'
-
-            rows_html += f"""
-            <tr>
-                <td>{badge}</td>
-                <td class="td-bold">{h_no}</td>
-                <td class="td-bold td-name">{name}{trend_badge}</td>
-                <td>{draw}</td>
-                <td>{jockey}</td>
-                <td class="td-odds">{odds}</td>
-                <td class="td-prob">{m_pct}</td>
-                <td class="td-edge">{edge}</td>
-            </tr>
-            """
-
-    races_html += f"""
-    <div class="race-table-card" id="race-{r_no}">
-        <div class="race-table-header">
-            <span>🏇 第 {r_no} 場</span>
-            <span class="race-h-count">{h_count} 匹馬</span>
-        </div>
-        <div class="table-scroller">
-            <table>
+                """
+            cards_html += '</div>'
+            
+        # 馬匹排位表格
+        cards_html += """
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
                 <thead>
-                    <tr>
-                        <th>名次</th><th>馬號</th><th style="text-align:left;padding-left:8px;">馬名 / 資金動向</th><th>檔位</th><th>騎師</th><th>賠率</th><th>勝率</th><th>Edge</th>
+                    <tr style="color: #8b949e; border-bottom: 1px solid #30363d;">
+                        <th style="padding: 6px;">馬號</th>
+                        <th>馬名</th>
+                        <th>檔位</th>
+                        <th>負磅</th>
+                        <th>評分</th>
+                        <th>體重(升降)</th>
+                        <th>配備</th>
+                        <th>即時獨贏</th>
+                        <th>模型勝率</th>
+                        <th>邊際優勢(Edge)</th>
+                        <th>資金狀態</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {rows_html}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    """
+        """
+        for _, row in df_scored.iterrows():
+            edge_val = row.get('edge', 0.0)
+            edge_color = "#3fb950" if edge_val >= 1.0 else ("#f85149" if edge_val < 0.8 else "#c9d1d9")
+            w_diff = str(row.get('weight_diff', ''))
+            w_str = f"{row.get('body_weight', '-')} ({w_diff})" if row.get('body_weight') else "-"
+            flow_status = row.get('flow_status', '')
+            
+            cards_html += f"""
+                <tr style="border-bottom: 1px solid #21262d; color: #c9d1d9;">
+                    <td style="padding: 6px; font-weight: bold; color: #58a6ff;">{row.get('horse_no')}</td>
+                    <td style="font-weight: bold; color: #f0f6fc;">{row.get('horse_name')}</td>
+                    <td>{row.get('draw', '-')}</td>
+                    <td>{row.get('handicap_weight', '-')}</td>
+                    <td>{row.get('rating', '-')}</td>
+                    <td style="font-size: 11px;">{w_str}</td>
+                    <td style="font-size: 11px; color: #d2a8ff;">{row.get('gear', '-')}</td>
+                    <td style="font-weight: bold; color: #ffaa00;">{row.get('win_odds', 0.0):.1f}</td>
+                    <td>{row.get('win_prob', 0.0)*100:.1f}%</td>
+                    <td style="color: {edge_color}; font-weight: bold;">{edge_val:.2f}</td>
+                    <td style="font-size: 11px;">{flow_status}</td>
+                </tr>
+            """
+        cards_html += "</tbody></table></div>"
 
-# -------------------------------------------------------------
-# 5. 輸出深色手機專屬原生網頁
-# -------------------------------------------------------------
-html_template = f"""<!DOCTYPE html>
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    full_html = f"""<!DOCTYPE html>
 <html lang="zh-HK">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🏇 香港賽馬量化實戰指南</title>
+    <title>香港賽馬量化實戰指南</title>
     <style>
-        * {{ box-sizing: border-box; margin: 0; padding: 0; }}
         body {{
-            background-color: #0b0c10;
-            color: #e0e2ec;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang HK", sans-serif;
-            padding: 12px 10px 48px 10px;
-            -webkit-font-smoothing: antialiased;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
         }}
-        .container {{ max-width: 600px; margin: 0 auto; }}
-        
-        .top-header {{
-            background: linear-gradient(135deg, #181a20, #14161c);
-            padding: 14px 16px;
-            border-radius: 14px;
-            border-left: 4px solid #00e676;
-            margin-bottom: 16px;
-            border-top: 1px solid #232732;
-            border-right: 1px solid #232732;
-            border-bottom: 1px solid #232732;
+        .container {{
+            max-width: 1100px;
+            margin: 0 auto;
         }}
-        .top-header h1 {{
-            font-size: 1.15rem;
-            font-weight: 800;
-            color: #ffffff;
-            margin-bottom: 6px;
-            letter-spacing: 0.5px;
-        }}
-        .meta-line {{
-            font-size: 0.76rem;
-            color: #8b92a5;
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 6px;
-        }}
-        .badge-hk {{ background: #ef4444; color: #fff; padding: 2px 7px; border-radius: 6px; font-weight: 700; font-size: 0.7rem; }}
-        .badge-venue {{ background: #00e676; color: #000; padding: 2px 7px; border-radius: 6px; font-weight: 800; font-size: 0.7rem; }}
-
-        .section-header {{
-            display: flex;
-            align-items: center;
-            font-size: 0.92rem;
-            font-weight: 800;
-            color: #fff;
-            margin: 18px 2px 8px 2px;
-        }}
-        .strat-sub {{
-            font-size: 0.72rem;
-            color: #8b92a5;
-            margin: -4px 2px 10px 4px;
-        }}
-
-        .pending-box {{
-            background: #151821;
-            border: 1px solid #232838;
-            border-radius: 12px;
-            padding: 12px 14px;
-            margin-bottom: 14px;
-        }}
-        .pending-title {{ color: #fbbf24; font-weight: 700; font-size: 0.82rem; margin-bottom: 4px; }}
-        .pending-desc {{ color: #8b92a5; font-size: 0.74rem; line-height: 1.4; }}
-        .win-bet-item {{
-            background: #151821;
-            border: 1px solid #232838;
-            border-radius: 12px;
-            padding: 10px 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }}
-        .race-tag {{ background: #2563eb; color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: 800; font-size: 0.72rem; }}
-        .win-horse {{ font-weight: 700; color: #fff; font-size: 0.88rem; margin-left: 6px; }}
-        .win-odds {{ color: #38bdf8; font-size: 0.82rem; font-weight: 700; margin-right: 12px; }}
-        .win-stake {{ color: #00e676; font-size: 0.82rem; font-weight: 800; }}
-
-        .ticket-card {{
-            background: #151821;
-            border: 1px solid #232838;
-            border-radius: 12px;
-            margin-bottom: 10px;
-            padding: 10px 12px;
-        }}
-        .ticket-header {{
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-            padding-bottom: 6px;
-            border-bottom: 1px dashed #282e40;
-            gap: 8px;
-        }}
-        .race-tag-lg {{
-            background: #2563eb;
-            color: #fff;
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 800;
-            white-space: nowrap;
-        }}
-        .h-chips-wrap {{ display: flex; flex-wrap: wrap; gap: 4px; }}
-        .h-chip {{
-            background: #202534;
-            color: #e2e8f0;
-            padding: 2px 6px;
-            border-radius: 5px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }}
-        .ticket-body {{ display: flex; flex-direction: column; gap: 6px; }}
-        .ticket-row {{
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.76rem;
-            gap: 6px;
-        }}
-        .bet-badge {{
-            font-size: 0.68rem;
-            font-weight: 800;
-            padding: 2px 6px;
-            border-radius: 5px;
-            white-space: nowrap;
-        }}
-        .bet-badge.qp {{ background: #475569; color: #f1f5f9; }}
-        .bet-badge.trio {{ background: #b45309; color: #fef3c7; }}
-        .chips-list {{ display: flex; flex-wrap: wrap; gap: 4px; flex: 1; margin: 0 4px; }}
-        .bet-chip {{
-            background: #1c2230;
-            color: #38bdf8;
-            border: 1px solid #2d374d;
-            padding: 1px 6px;
-            border-radius: 4px;
-            font-family: ui-monospace, Menlo, monospace;
-            font-size: 0.72rem;
-            font-weight: 700;
-            white-space: nowrap;
-        }}
-        .trio-chip {{ color: #fbbf24; border-color: #5c441b; }}
-        .ticket-price {{ color: #94a3b8; font-size: 0.72rem; font-weight: 700; white-space: nowrap; }}
-
-        .banker-card {{
-            background: #1a1625;
-            border: 1px solid #4c2882;
-            border-radius: 12px;
-            padding: 12px 14px;
-            margin-bottom: 12px;
-        }}
-        .banker-header {{ display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }}
-        .banker-badge {{ background: #9333ea; color: #fff; padding: 2px 6px; border-radius: 5px; font-size: 0.7rem; font-weight: 800; }}
-        .banker-horse {{ font-weight: 800; color: #fff; font-size: 0.9rem; }}
-        .banker-prob {{ color: #00e676; font-size: 0.75rem; font-weight: 700; margin-left: auto; }}
-        .banker-legs {{ font-size: 0.76rem; color: #d8b4fe; margin-bottom: 4px; }}
-        .banker-cost {{ font-size: 0.72rem; color: #94a3b8; }}
-
-        .allup-card {{
-            background: #151821;
-            border: 1px solid #232838;
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 16px;
-        }}
-        .allup-steps {{ display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }}
-        .allup-step {{
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.78rem;
-            background: #1c202c;
-            padding: 6px 10px;
-            border-radius: 8px;
-        }}
-        .allup-tag {{ background: #3b82f6; color: #fff; padding: 1px 6px; border-radius: 4px; font-weight: 800; font-size: 0.7rem; }}
-        .allup-horse {{ font-weight: 700; color: #fff; flex: 1; margin-left: 8px; }}
-        .allup-prob {{ color: #00e676; font-weight: 700; font-size: 0.74rem; }}
-        .allup-summary {{
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.75rem;
-            color: #fbbf24;
-            font-weight: 700;
-            padding-top: 6px;
-            border-top: 1px dashed #282e40;
-        }}
-        .allup-stake {{ color: #94a3b8; font-weight: normal; }}
-
-        .nav-scroller {{
-            display: flex;
-            overflow-x: auto;
-            gap: 6px;
-            padding: 4px 2px 10px 2px;
-            margin-bottom: 12px;
-            -webkit-overflow-scrolling: touch;
-        }}
-        .nav-pill {{
-            flex: 0 0 auto;
-            background: #1c202c;
-            color: #00e676;
-            text-decoration: none;
-            font-weight: 800;
-            font-size: 0.76rem;
-            padding: 5px 11px;
-            border-radius: 8px;
-            border: 1px solid #293042;
-        }}
-
-        .race-table-card {{
-            background: #151821;
-            border-radius: 12px;
-            margin-bottom: 14px;
-            border: 1px solid #232838;
-            overflow: hidden;
-        }}
-        .race-table-header {{
-            background: #1c202c;
-            padding: 9px 12px;
-            font-size: 0.88rem;
-            font-weight: 800;
-            color: #fff;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #282e40;
-        }}
-        .race-h-count {{ font-size: 0.72rem; color: #8b92a5; font-weight: normal; }}
-        .table-scroller {{ overflow-x: auto; -webkit-overflow-scrolling: touch; }}
-        table {{
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.76rem;
-            white-space: nowrap;
-            text-align: center;
-        }}
-        th {{
-            background: #11141c;
-            color: #8b92a5;
-            font-weight: 600;
-            padding: 7px 6px;
-            font-size: 0.7rem;
-            border-bottom: 1px solid #232838;
-        }}
-        td {{
-            padding: 8px 6px;
-            border-bottom: 1px solid #1c202c;
-            color: #cbd5e1;
-        }}
-        .rank-badge {{
-            display: inline-block;
-            width: 18px;
-            height: 18px;
-            line-height: 18px;
-            border-radius: 50%;
-            font-weight: 800;
-            font-size: 0.68rem;
-        }}
-        .rank-1 {{ background: #facc15; color: #000; }}
-        .rank-2 {{ background: #94a3b8; color: #000; }}
-        .rank-3 {{ background: #f97316; color: #000; }}
-        .rank-other {{ background: #242a38; color: #64748b; }}
-        .td-bold {{ font-weight: 700; color: #fff; }}
-        .td-name {{ text-align: left; padding-left: 6px; font-weight: 700; }}
-        .td-odds {{ color: #38bdf8; }}
-        .td-prob {{ color: #00e676; font-weight: 800; }}
-        .td-edge {{ color: #f43f5e; font-weight: 700; }}
-        .empty-note {{ font-size: 0.74rem; color: #64748b; padding: 6px 4px; }}
-
-        /* 資金異動動態 Badge */
-        .trend-badge {{
-            display: inline-block;
-            margin-left: 4px;
-            padding: 1px 4px;
-            border-radius: 4px;
-            font-size: 0.65rem;
-            font-weight: 800;
-            white-space: nowrap;
-        }}
-        .trend-badge.drop {{ background: #b91c1c; color: #fef2f2; border: 1px solid #ef4444; }}
-        .trend-badge.drift {{ background: #1e293b; color: #94a3b8; border: 1px solid #334155; }}
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="top-header">
-            <h1>🏇 香港賽馬量化實戰指南</h1>
-            <div class="meta-line">
-                <span class="badge-hk">香港本地</span>
-                <span class="badge-venue">{venue_text}</span>
-                <span>賽事日：<strong>{target_race_date}</strong></span>
-                <span>| {hkt_now} 更新</span>
+        <div style="background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 20px; margin-bottom: 25px;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <h2 style="margin: 0; color: #f0f6fc;">🏇 香港賽馬量化實戰指南</h2>
+                <span style="font-size: 12px; color: #8b949e;">更新時間: {now_str}</span>
+            </div>
+            <div style="margin-top: 10px; display: flex; gap: 10px; font-size: 12px;">
+                <span style="background: #da3633; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold;">香港本地</span>
+                <span style="background: #238636; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold;">沙田 (ST)</span>
+                <span style="color: #8b949e; align-self: center;">賽事日: {target_race_date}</span>
             </div>
         </div>
 
-        <div class="section-header">🎯 策略一：+EV 獨贏單注</div>
-        <div class="strat-sub">回測 ROI +2.24% 甜蜜點（勝率 &ge; 25% | Edge &ge; 1.00）</div>
-        {strat1_html}
+        {exotics_html}
 
-        <div class="section-header">🛡️ 策略三：超級穩膽（單膽連贏 Q / QP）</div>
-        {strat3_html}
-
-        <div class="section-header">🚀 策略四：穩健位置過關（3 串 4）</div>
-        {strat4_html}
-
-        <div class="section-header">⚡ 策略二：每場 Top 3 互串（QP + 單 T）</div>
-        <div class="strat-sub">QP 互串命中率 36.2%（每 2.8 場中 1 次）</div>
-        {strat2_cards_html}
-
-        <div class="section-header" style="margin-top:24px;">📋 各場排位勝率完整榜</div>
-        <div class="nav-scroller">
-            {nav_buttons}
-        </div>
-        {races_html}
+        {cards_html}
     </div>
 </body>
 </html>
 """
 
-os.makedirs('public', exist_ok=True)
-with open('public/index.html', 'w', encoding='utf-8') as f:
-    f.write(html_template)
+    os.makedirs("public", exist_ok=True)
+    with open("public/index.html", "w", encoding="utf-8") as f:
+        f.write(full_html)
+    print("✅ 儀表板 HTML 生成成功 (含大彩池專區)！")
 
-print(
-    f'✅ 成功生成【香港本地賽事 {target_race_date} {venue_text}】動態賠率版手機網頁'
-    ' public/index.html'
-)
+if __name__ == "__main__":
+    main()
