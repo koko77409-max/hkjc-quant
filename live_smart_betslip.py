@@ -139,9 +139,6 @@ def render_exotics_html_box(exotics):
     return h
 
 import sys, io
-if sys.platform.startswith('win'):
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 
 def build_exotics_box(exotics):
