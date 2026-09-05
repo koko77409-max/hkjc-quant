@@ -1,5 +1,78 @@
 
-def build_exotics_html_card(exotics_data):
+def generate_exotics_html(all_dfs):
+    """生成四重彩/四連環、孖T/三T、六寶獎卡片"""
+    from live_smart_betslip import calculate_exotic_pools
+    exotics = calculate_exotic_pools(all_dfs)
+    
+    html = """
+    <div style="margin-bottom: 25px; background: linear-gradient(135deg, #1c1917 0%, #291e10 100%); border: 1px solid #f59e0b; border-radius: 12px; padding: 18px; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.15);">
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(245, 158, 11, 0.3); padding-bottom: 10px; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 20px;">🎰</span>
+                <span style="font-size: 16px; font-weight: bold; color: #fbbf24;">非對稱大彩池量化推薦 (Exotic Pools)</span>
+            </div>
+            <span style="font-size: 11px; background: #78350f; color: #fde68a; padding: 2px 8px; border-radius: 10px;">Henery 剪枝模型</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
+    """
+    
+    # 四重彩 / 四連環
+    if exotics.get('first4_quartet'):
+        html += '<div style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 12px; border-left: 3px solid #3b82f6;">'
+        html += '<div style="color: #60a5fa; font-weight: bold; font-size: 13px; margin-bottom: 6px;">🎯 四重彩 / 四連環剪枝</div>'
+        for it in exotics['first4_quartet'][:3]:
+            html += f"""
+            <div style="margin-bottom: 8px; font-size: 12px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 5px;">
+                <span style="background: #1d4ed8; color: white; padding: 1px 5px; border-radius: 4px; font-size: 10px;">第 {it['race_no']} 場</span>
+                <strong style="color: #f3f4f6; margin-left: 4px;">{it['pool']}</strong>
+                <div style="color: #fef08a; font-family: monospace; font-size: 13px; margin: 3px 0;">{it['structure']}</div>
+                <div style="color: #9ca3af; font-size: 11px;">注數: {it['bets_count']} 注 (${it['suggested_cost']}) | {it['edge_reason']}</div>
+            </div>
+            """
+        html += '</div>'
+        
+    # 三T / 孖T
+    html += '<div style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 12px; border-left: 3px solid #10b981;">'
+    html += '<div style="color: #34d399; font-weight: bold; font-size: 13px; margin-bottom: 6px;">👑 孖 T / 三 T 膽拖</div>'
+    if exotics.get('triple_trio'):
+        tt = exotics['triple_trio'][0]
+        html += f"""
+        <div style="margin-bottom: 8px; font-size: 12px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 5px;">
+            <span style="background: #047857; color: white; padding: 1px 5px; border-radius: 4px; font-size: 10px;">三 T (R4-R5-R6)</span>
+            <div style="color: #a7f3d0; font-family: monospace; font-size: 12px; margin: 3px 0;">{tt['structure']}</div>
+            <div style="color: #9ca3af; font-size: 11px;">注數: {tt['bets_count']} 注 (${tt['suggested_cost']}) | {tt['note']}</div>
+        </div>
+        """
+    if exotics.get('double_trio'):
+        dt = exotics['double_trio'][0]
+        html += f"""
+        <div style="font-size: 12px;">
+            <span style="background: #047857; color: white; padding: 1px 5px; border-radius: 4px; font-size: 10px;">孖 T (R4-R5)</span>
+            <div style="color: #a7f3d0; font-family: monospace; font-size: 12px; margin: 3px 0;">{dt['structure']}</div>
+            <div style="color: #9ca3af; font-size: 11px;">注數: {dt['bets_count']} 注 (${dt['suggested_cost']}) | {dt['note']}</div>
+        </div>
+        """
+    html += '</div>'
+
+    # 六寶獎
+    if exotics.get('six_up'):
+        six = exotics['six_up'][0]
+        html += '<div style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 12px; border-left: 3px solid #a855f7;">'
+        html += '<div style="color: #c084fc; font-weight: bold; font-size: 13px; margin-bottom: 6px;">⚡ 六寶獎 (Six-Up) 穿透路徑</div>'
+        html += f"""
+        <div style="font-size: 12px;">
+            <span style="background: #7e22ce; color: white; padding: 1px 5px; border-radius: 4px; font-size: 10px;">R5 ~ R10</span>
+            <div style="color: #e9d5ff; font-family: monospace; font-size: 12px; margin: 3px 0;">{six['structure']}</div>
+            <div style="color: #9ca3af; font-size: 11px;">總注數: {six['bets_count']} 注 (${six['suggested_cost']}) | {six['note']}</div>
+        </div>
+        """
+        html += '</div>'
+
+    html += "</div></div>"
+    return html
+
+
+def :
     """渲染大彩池專區 HTML"""
     if not exotics_data:
         return ""
