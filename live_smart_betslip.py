@@ -1,3 +1,143 @@
+
+def calculate_and_print_exotics(all_race_dfs):
+    """記憶體直接計算，不讀取資料庫，防鎖定；同步終端機列印與 HTML 產出"""
+    exotics = {'first4_quartet': [], 'triple_trio': [], 'double_trio': [], 'six_up': []}
+    
+    print("\n" + "="*52)
+    print("🎰 【 非對稱大彩池量化推薦 (Exotic Pools) 】")
+    print("="*52)
+    
+    # 1. 四重彩 / 四連環
+    for r_no, df in all_race_dfs.items():
+        if df is None or df.empty or len(df) < 5:
+            continue
+        sub = df.sort_values('win_prob', ascending=False).reset_index(drop=True)
+        top_prob = sub.loc[0, 'win_prob'] if 'win_prob' in sub.columns else 0
+        top5_horses = sub.head(5)['horse_no'].tolist()
+        
+        if top_prob >= 0.38:
+            banker = top5_horses[0]
+            legs = top5_horses[1:5]
+            exotics['first4_quartet'].append({
+                'race_no': r_no,
+                'pool': '四重彩 (Quartet)',
+                'structure': f"{banker} 號膽 拖 " + ",".join(map(str, legs)),
+                'bets_count': 24,
+                'suggested_cost': 240,
+                'edge_reason': f"首選勝率高達 {top_prob*100:.1f}% (超強單膽)"
+            })
+            print(f"🎯 第 {r_no} 場 四重彩: [{banker} 號膽] 拖 {legs} (24注 / $240) - 首選勝率 {top_prob*100:.1f}%")
+        else:
+            exotics['first4_quartet'].append({
+                'race_no': r_no,
+                'pool': '四連環 (First 4)',
+                'structure': "5 匹複式: " + ",".join(map(str, top5_horses)),
+                'bets_count': 5,
+                'suggested_cost': 50,
+                'edge_reason': "勝率均勻，剪枝覆蓋 Top 5"
+            })
+            print(f"🎯 第 {r_no} 場 四連環: 5匹複式 {top5_horses} (5注 / $50)")
+
+    # 2. 三 T (R4, R5, R6)
+    if all(r in all_race_dfs and not all_race_dfs[r].empty for r in [4, 5, 6]):
+        tt_legs = []
+        for r in [4, 5, 6]:
+            sub = all_race_dfs[r].sort_values('win_prob', ascending=False).reset_index(drop=True)
+            b = sub.loc[0, 'horse_no']
+            l = sub.loc[1:3, 'horse_no'].tolist()
+            tt_legs.append(f"R{r}:[{b}]膽拖{l}")
+        exotics['triple_trio'].append({
+            'structure': " | ".join(tt_legs),
+            'bets_count': 27,
+            'suggested_cost': 270,
+            'note': '每關 1 膽拖 3 腳，總注數壓縮至 27 注'
+        })
+        print(f"👑 三 T (R4-R6): {' | '.join(tt_legs)} (共 27 注 / $270)")
+
+    # 3. 孖 T (R4, R5)
+    if all(r in all_race_dfs and not all_race_dfs[r].empty for r in [4, 5]):
+        dt_legs = []
+        for r in [4, 5]:
+            sub = all_race_dfs[r].sort_values('win_prob', ascending=False).reset_index(drop=True)
+            b = sub.loc[0, 'horse_no']
+            l = sub.loc[1:4, 'horse_no'].tolist()
+            dt_legs.append(f"R{r}:[{b}]膽拖{l}")
+        exotics['double_trio'].append({
+            'structure': " | ".join(dt_legs),
+            'bets_count': 36,
+            'suggested_cost': 360,
+            'note': '雙關高把握前三名組合覆蓋'
+        })
+        print(f"👑 孖 T (R4-R5): {' | '.join(dt_legs)} (共 36 注 / $360)")
+
+    # 4. 六寶獎 (R5 ~ R10)
+    if all(r in all_race_dfs and not all_race_dfs[r].empty for r in range(5, 11)):
+        picks = [f"R{r}:({all_race_dfs[r].sort_values('win_prob', ascending=False).iloc[0]['horse_no']})" for r in range(5, 11)]
+        exotics['six_up'].append({
+            'structure': " - ".join(picks),
+            'bets_count': 1,
+            'suggested_cost': 10,
+            'note': '純單選穿透路徑'
+        })
+        print(f"⚡ 六寶獎 (R5-R10): {' - '.join(picks)} (單選穿透 / $10)")
+        
+    print("="*52 + "\n")
+    return exotics
+
+def render_exotics_html_box(exotics):
+    if not exotics:
+        return ""
+    h = """
+    <div style="margin-bottom: 25px; background: linear-gradient(135deg, #1c1917 0%, #291e10 100%); border: 1px solid #f59e0b; border-radius: 12px; padding: 18px; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.15);">
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(245, 158, 11, 0.3); padding-bottom: 10px; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 20px;">🎰</span>
+                <span style="font-size: 16px; font-weight: bold; color: #fbbf24;">非對稱大彩池量化推薦 (Exotic Pools)</span>
+            </div>
+            <span style="font-size: 11px; background: #78350f; color: #fde68a; padding: 2px 8px; border-radius: 10px;">Henery 剪枝模型</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
+    """
+    if exotics.get('first4_quartet'):
+        h += '<div style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 12px; border-left: 3px solid #3b82f6;"><div style="color: #60a5fa; font-weight: bold; font-size: 13px; margin-bottom: 6px;">🎯 四重彩 / 四連環剪枝</div>'
+        for it in exotics['first4_quartet'][:3]:
+            h += f"""<div style="margin-bottom: 8px; font-size: 12px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 5px;">
+                <span style="background: #1d4ed8; color: white; padding: 1px 5px; border-radius: 4px; font-size: 10px;">第 {it['race_no']} 場</span>
+                <strong style="color: #f3f4f6; margin-left: 4px;">{it['pool']}</strong>
+                <div style="color: #fef08a; font-family: monospace; font-size: 13px; margin: 3px 0;">{it['structure']}</div>
+                <div style="color: #9ca3af; font-size: 11px;">注數: {it['bets_count']} 注 (${it['suggested_cost']}) | {it['edge_reason']}</div>
+            </div>"""
+        h += '</div>'
+        
+    if exotics.get('triple_trio'):
+        tt = exotics['triple_trio'][0]
+        h += f"""<div style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 12px; border-left: 3px solid #10b981;"><div style="color: #34d399; font-weight: bold; font-size: 13px; margin-bottom: 6px;">👑 孖 T / 三 T 膽拖</div>
+            <div style="margin-bottom: 8px; font-size: 12px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 5px;">
+                <span style="background: #047857; color: white; padding: 1px 5px; border-radius: 4px; font-size: 10px;">三 T (R4-R5-R6)</span>
+                <div style="color: #a7f3d0; font-family: monospace; font-size: 12px; margin: 3px 0;">{tt['structure']}</div>
+                <div style="color: #9ca3af; font-size: 11px;">注數: {tt['bets_count']} 注 (${tt['suggested_cost']}) | {tt['note']}</div>
+            </div>"""
+        if exotics.get('double_trio'):
+            dt = exotics['double_trio'][0]
+            h += f"""<div style="font-size: 12px;">
+                <span style="background: #047857; color: white; padding: 1px 5px; border-radius: 4px; font-size: 10px;">孖 T (R4-R5)</span>
+                <div style="color: #a7f3d0; font-family: monospace; font-size: 12px; margin: 3px 0;">{dt['structure']}</div>
+                <div style="color: #9ca3af; font-size: 11px;">注數: {dt['bets_count']} 注 (${dt['suggested_cost']}) | {dt['note']}</div>
+            </div>"""
+        h += '</div>'
+
+    if exotics.get('six_up'):
+        six = exotics['six_up'][0]
+        h += f"""<div style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 12px; border-left: 3px solid #a855f7;"><div style="color: #c084fc; font-weight: bold; font-size: 13px; margin-bottom: 6px;">⚡ 六寶獎 (Six-Up) 穿透路徑</div>
+            <div style="font-size: 12px;">
+                <span style="background: #7e22ce; color: white; padding: 1px 5px; border-radius: 4px; font-size: 10px;">R5 ~ R10</span>
+                <div style="color: #e9d5ff; font-family: monospace; font-size: 12px; margin: 3px 0;">{six['structure']}</div>
+                <div style="color: #9ca3af; font-size: 11px;">總注數: {six['bets_count']} 注 (${six['suggested_cost']}) | {six['note']}</div>
+            </div></div>"""
+            
+    h += "</div></div>"
+    return h
+
 import sys, io
 if sys.platform.startswith('win'):
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
