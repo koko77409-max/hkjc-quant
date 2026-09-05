@@ -404,7 +404,7 @@ def run_smart_betslip(
         value_bets = full_df[
             (full_df['model_rank'] == 1)
             & (full_df['win_odds'] >= 1.5)
-            & (full_df['win_odds'] <= 3.0)
+            & (full_df['win_odds'] <= 4.5)
             & (full_df['model_prob'] >= 0.25)
             & (full_df['edge'] >= 1.00)
         ].copy()
