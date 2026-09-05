@@ -1,4 +1,24 @@
 
+def apply_single_race_exposure_limit(bets, max_race_stake=350):
+    """
+    全域風控總閘：單場總注碼不超過 $350 (以 $10,000 本金計算，單場曝險嚴格壓在 3.5% 以內)
+    若超額則依比例縮減各策略注碼
+    """
+    total_requested = sum(b.get('stake', 0) for b in bets)
+    if total_requested <= max_race_stake or total_requested == 0:
+        return bets
+    
+    scale_factor = max_race_stake / total_requested
+    adjusted_bets = []
+    for b in bets:
+        raw_stake = b.get('stake', 0) * scale_factor
+        # 取整至馬會 $10 注碼單位，最低保留 $10
+        final_stake = max(10, int(round(raw_stake / 10.0) * 10))
+        b['stake'] = final_stake
+        adjusted_bets.append(b)
+    return adjusted_bets
+
+
 def calculate_quarter_kelly(win_prob, win_odds, bankroll=10000, max_bet_pct=0.03):
     """
     1/4 凱利注碼管理 (Quarter-Kelly)
