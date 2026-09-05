@@ -28,6 +28,8 @@ def select_value_portfolio(race_df, top_n_legs=4, min_prob=0.06, min_edge=1.18):
 
 
 
+
+
 def build_race_meta_banner(race_date='2026/09/06', venue='沙田 (ST)', track='草地 - A 賽道', weather='大致多雲 / 29°C', condition='好地 (Good)'):
     import datetime
     now_str = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -51,7 +53,6 @@ def calculate_and_print_exotics(all_race_dfs):
     print("=" * 84)
     print("🎰 【 非對稱大彩池量化推薦 (Exotic Pools - 純 Edge 價值配腳) 】")
     print("=" * 84)
-    
     for r_no in sorted(all_race_dfs.keys()):
         df = all_race_dfs[r_no]
         if df is None or df.empty or len(df) < 5:
@@ -59,7 +60,6 @@ def calculate_and_print_exotics(all_race_dfs):
         banker, legs = select_value_portfolio(df, top_n_legs=4, min_prob=0.06, min_edge=1.18)
         b_no = banker['horse_no']
         top_prob = banker['model_prob']
-        
         if top_prob >= 0.38:
             exotics['first4_quartet'].append({
                 'race_no': r_no,
@@ -92,7 +92,7 @@ def calculate_and_print_exotics(all_race_dfs):
             'structure': tt_str,
             'bets_count': 27,
             'suggested_cost': 270,
-            'note': '每關 1 穩健膽 + 3 匹 +EV 價值腳，拒買熱門死注'
+            'note': '每關 1 穩健膽 + 3 匹 +EV 價值腳'
         })
         print(f"👑 三 T (R4-R6): {tt_str} (共 27 注 / $270)")
 
@@ -120,9 +120,9 @@ def calculate_and_print_exotics(all_race_dfs):
             'note': '獨立勝率最高穿透路徑'
         })
         print(f"⚡ 六寶獎 (R5-R10): {six_str} (單選穿透 / $10)")
-        
     print("=" * 84)
     return exotics
+
 
 
 
@@ -1092,17 +1092,32 @@ def run_smart_betslip(
             banner_box = build_race_meta_banner()
             if "香港賽馬量化實戰監控" not in html_data:
                 html_data = html_data.replace('<div class="container">', '<div class="container">' + chr(10) + banner_box)
-            if "非對稱大彩池量化推薦" not in html_data:
-                html_data = html_data.replace('<div class="container">', '<div class="container">\n' + exotics_box)
-                dir_name = os.path.dirname(html_path)
-                with tempfile.NamedTemporaryFile("w", dir=dir_name, delete=False, encoding="utf-8") as tf:
-                    tf.write(html_data)
-                    tf.flush()
-                    temp_name = tf.name
-                os.replace(temp_name, html_path)
-                print("✅ 成功將大彩池專區注入 public/index.html！")
-            else:
-                print("ℹ️ 大彩池專區已存在於 index.html 中。")
+                # 無條件覆寫 public/index.html (清理殘留區塊並注入最新卡片)
+    try:
+        import os, datetime
+        html_path = os.path.abspath("public/index.html")
+        if os.path.exists(html_path):
+            with open(html_path, "r", encoding="utf-8", errors="ignore") as f_in:
+                cur_html = f_in.read()
+
+            # 清理先前的殘留卡片
+            import re as _re
+            cur_html = _re.sub(r'<div[^>]*>[\s\S]*?非對稱大彩池量化推薦[\s\S]*?<\/details>\s*<\/div>\s*<\/div>', '', cur_html)
+            cur_html = _re.sub(r'<div[^>]*>[\s\S]*?香港賽馬量化實戰監控[\s\S]*?<\/div>\s*<\/div>\s*<\/div>', '', cur_html)
+
+            # 更新標頭時間戳
+            now_ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            cur_html = _re.sub(r'\|\s*\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\s+更新', f'| {now_ts} 更新', cur_html)
+
+            banner_box = build_race_meta_banner() if 'build_race_meta_banner' in globals() else ''
+            new_blocks = f"\n{banner_box}\n{exotics_box}\n"
+            cur_html = cur_html.replace('<div class="container">', '<div class="container">' + new_blocks)
+
+            with open(html_path, "w", encoding="utf-8") as f_out:
+                f_out.write(cur_html)
+            print(f"🔥 [SUCCESS] public/index.html 已強制刷新！最新時間戳: {now_ts}")
+    except Exception as e:
+        print(f"⚠️ HTML 覆寫異常: {e}")
     except Exception as err:
         print(f"⚠️ HTML 注入時略過: {err}")
     
