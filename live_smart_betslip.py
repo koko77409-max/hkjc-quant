@@ -1,3 +1,41 @@
+
+def fetch_racecard_details(race_date_str, race_no):
+    """抓取馬會官方 HTML 排位表，提取體重、體重變化、評分、配備、近績"""
+    import requests
+    from bs4 import BeautifulSoup
+    
+    url = f"https://racing.hkjc.com/racing/information/Chinese/racing/RaceCard.aspx?RaceDate={race_date_str}&RaceNo={race_no}"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+    details = {}
+    try:
+        res = requests.get(url, headers=headers, timeout=8)
+        res.encoding = 'utf-8'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        table = soup.find('table', {'class': 'tableBorder0'}) or soup.find('table', {'class': 'draggable'})
+        if not table:
+            for t in soup.find_all('table'):
+                if '馬名' in t.text and '檔位' in t.text:
+                    table = t
+                    break
+        if table:
+            for r in table.find_all('tr'):
+                cols = [td.get_text(strip=True) for td in r.find_all('td')]
+                if cols and cols[0].isdigit():
+                    h_no = str(int(cols[0]))
+                    details[h_no] = {
+                        'recent_form': cols[1] if len(cols) > 1 else '',
+                        'rating': float(cols[11]) if len(cols) > 11 and cols[11].replace('-','').isdigit() else 0.0,
+                        'rating_diff': cols[12] if len(cols) > 12 else '',
+                        'body_weight': float(cols[13]) if len(cols) > 13 and cols[13].isdigit() else 0.0,
+                        'weight_diff': cols[14] if len(cols) > 14 else '',
+                        'gear': cols[22] if len(cols) > 22 else ''
+                    }
+    except Exception as e:
+        print(f"⚠️ 第 {race_no} 場抓取 HTML 排位細節失敗: {e}")
+    return details
+
 import joblib
 import time
 import sqlite3
