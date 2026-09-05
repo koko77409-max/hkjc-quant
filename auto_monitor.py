@@ -1,3 +1,81 @@
+
+def check_and_update_results(race_date_str, max_races=10, db_path='hkjc_racing.db'):
+    """檢測並自動寫入官方已完賽的賽果"""
+    import requests, sqlite3
+    from bs4 import BeautifulSoup
+    
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    }
+    
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS race_results (
+            race_date TEXT,
+            race_no INTEGER,
+            finishing_rank INTEGER,
+            horse_no TEXT,
+            horse_name TEXT,
+            finish_time TEXT,
+            win_odds REAL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (race_date, race_no, horse_no)
+        )
+    """)
+    
+    updated_any = False
+    for r_no in range(1, max_races + 1):
+        # 檢查該場是否已經記錄過第 1 名
+        cur.execute("SELECT COUNT(*) FROM race_results WHERE race_date=? AND race_no=? AND finishing_rank=1", (race_date_str, r_no))
+        if cur.fetchone()[0] > 0:
+            continue  # 該場已結算，跳過
+            
+        url = f"https://racing.hkjc.com/racing/information/Chinese/racing/LocalResults.aspx?RaceDate={race_date_str}&RaceNo={r_no}"
+        try:
+            res = requests.get(url, headers=headers, timeout=6)
+            res.encoding = 'utf-8'
+            if "沒有相關資料" in res.text or res.status_code != 200:
+                continue
+            
+            soup = BeautifulSoup(res.text, 'html.parser')
+            table = soup.find('table', {'class': 'tableBorder0'}) or soup.find('table', {'class': 'draggable'})
+            if not table:
+                continue
+                
+            rows = table.find_all('tr')
+            r_count = 0
+            for r in rows:
+                cols = [td.get_text(strip=True) for td in r.find_all('td')]
+                if cols and cols[0].isdigit():
+                    rank = int(cols[0])
+                    h_no = str(int(cols[1])) if cols[1].isdigit() else cols[1]
+                    h_name = cols[2]
+                    ftime = cols[10] if len(cols) > 10 else ''
+                    raw_odds = cols[11] if len(cols) > 11 else '0'
+                    try:
+                        odds = float(raw_odds.replace(',', ''))
+                    except:
+                        odds = 0.0
+                        
+                    cur.execute("""
+                        INSERT OR REPLACE INTO race_results 
+                        (race_date, race_no, finishing_rank, horse_no, horse_name, finish_time, win_odds)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """, (race_date_str, r_no, rank, h_no, h_name, ftime, odds))
+                    r_count += 1
+            
+            if r_count > 0:
+                print(f"🏆 成功記錄第 {r_no} 場正式賽果 (共 {r_count} 匹完賽馬)！")
+                updated_any = True
+                conn.commit()
+        except Exception as e:
+            pass
+            
+    conn.commit()
+    conn.close()
+    return updated_any
+
 import os
 import subprocess
 import time
