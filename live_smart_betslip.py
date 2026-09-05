@@ -1,91 +1,4 @@
 
-def build_race_meta_banner(race_date="2026/09/06", venue="沙田 (ST)", track="草地 - A 賽道", weather="大致多雲 / 29°C", condition="好地 (Good)"):
-    """構建網頁頂部賽事資訊卡片"""
-    import datetime
-    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
-    banner_html = f"""
-    <div style="background: linear-gradient(90deg, #1e293b 0%, #0f172a 100%); border: 1px solid #334155; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
-        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 15px;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <span style="font-size: 26px;">🏇</span>
-                <div>
-                    <div style="font-size: 18px; font-weight: bold; color: #f8fafc; letter-spacing: 0.5px;">香港賽馬量化實戰監控</div>
-                    <div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">賽事日期：<strong style="color: #38bdf8;">{race_date}</strong></div>
-                </div>
-            </div>
-            
-            <div style="display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px;">
-                <div style="background: rgba(30, 41, 59, 0.8); border: 1px solid #475569; border-radius: 8px; padding: 6px 12px;">
-                    <span style="color: #94a3b8;">場地跑道：</span>
-                    <strong style="color: #f1f5f9;">{venue} | {track}</strong>
-                </div>
-                <div style="background: rgba(30, 41, 59, 0.8); border: 1px solid #475569; border-radius: 8px; padding: 6px 12px;">
-                    <span style="color: #94a3b8;">天氣：</span>
-                    <strong style="color: #facc15;">☁️ {weather}</strong>
-                </div>
-                <div style="background: rgba(30, 41, 59, 0.8); border: 1px solid #475569; border-radius: 8px; padding: 6px 12px;">
-                    <span style="color: #94a3b8;">場地狀況：</span>
-                    <strong style="color: #4ade80;">🌱 {condition}</strong>
-                </div>
-                <div style="background: rgba(30, 41, 59, 0.8); border: 1px solid #475569; border-radius: 8px; padding: 6px 12px;">
-                    <span style="color: #94a3b8;">盤口更新：</span>
-                    <strong style="color: #38bdf8;">{now_str}</strong>
-                </div>
-            </div>
-        </div>
-    </div>
-    """
-    return banner_html
-
-
-def archive_final_betslip(target_date, race_no, bets_list, exotics_dict):
-    """將每一場的最終投注組合永久歸檔到 SQLite 與 JSON，便於賽後自動對獎"""
-    import sqlite3, json, os
-    os.makedirs("history_bets", exist_ok=True)
-    
-    # 1. 儲存至 JSON 檔案 (以日期與場次為檔名)
-    filename = f"history_bets/{target_date.replace('/', '')}_R{race_no}.json"
-    record = {
-        "race_date": target_date,
-        "race_no": race_no,
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "standard_bets": bets_list,
-        "exotics": exotics_dict
-    }
-    with open(filename, "w", encoding="utf-8") as f:
-        json.dump(record, f, ensure_ascii=False, indent=2)
-        
-    # 2. 儲存至 SQLite 資料庫方便日後 SQL 分析回測
-    try:
-        conn = sqlite3.connect("horse_racing.db")
-        c = conn.cursor()
-        c.execute("""
-            CREATE TABLE IF NOT EXISTS final_betslips (
-                race_date TEXT,
-                race_no INTEGER,
-                bet_type TEXT,
-                selection TEXT,
-                stake REAL,
-                edge REAL,
-                recorded_at TEXT,
-                PRIMARY KEY (race_date, race_no, bet_type, selection)
-            )
-        """)
-        now_ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        for b in bets_list:
-            sel_str = ",".join(map(str, b.get('horses', []))) if isinstance(b.get('horses'), list) else str(b.get('horses'))
-            c.execute("""
-                INSERT OR REPLACE INTO final_betslips 
-                (race_date, race_no, bet_type, selection, stake, edge, recorded_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (target_date, race_no, b.get('type'), sel_str, b.get('stake', 10), b.get('edge', 1.0), now_ts))
-        conn.commit()
-        conn.close()
-    except Exception as e:
-        print(f"⚠️ 歸檔 SQLite 時略過: {e}")
-
-
 def select_value_portfolio(race_df, top_n_legs=4, min_prob=0.06):
     """
     雙維度機構選馬矩陣：
@@ -118,8 +31,8 @@ def calculate_and_print_exotics(all_race_dfs):
     """結合 Edge 排序與剪枝架構的大彩池量化模組"""
     exotics = {'first4_quartet': [], 'triple_trio': [], 'double_trio': [], 'six_up': []}
     
-    print("=" * 84)
-    print("=" * 84)
+    print("
+" + "="*84)
     print("🎰 【 非對稱大彩池量化推薦 (Exotic Pools - 結合 Edge 價值配腳) 】")
     print("="*84)
     
@@ -199,7 +112,8 @@ def calculate_and_print_exotics(all_race_dfs):
         })
         print(f"⚡ 六寶獎 (R5-R10): {six_str} (單選穿透 / $10)")
         
-    print("=" * 84)
+    print("="*84 + "
+")
     return exotics
 
 
@@ -1159,38 +1073,31 @@ def run_smart_betslip(
     </div>
     """
 
-    
-    # 安全注入大彩池、頂部資訊欄與歷史注單
+    # 安全注入 public/index.html (原子寫入防死鎖)
     try:
         import os, tempfile
         html_path = os.path.abspath("public/index.html")
         if os.path.exists(html_path):
             with open(html_path, "r", encoding="utf-8", errors="ignore") as f_in:
                 html_data = f_in.read()
-
-            # 注入頂部環境資訊卡
-            banner_box = build_race_meta_banner()
-            if "香港賽馬量化實戰監控" not in html_data:
-            html_data = html_data.replace("<div class="container">", "<div class="container">" + chr(10) + banner_box)
-
-            # 注入大彩池專區
             if "非對稱大彩池量化推薦" not in html_data:
-            html_data = html_data.replace("<div class="container">", "<div class="container">" + chr(10) + exotics_box)
-
-            # 原子性寫入檔案，防鎖定
-            dir_name = os.path.dirname(html_path)
-            with tempfile.NamedTemporaryFile("w", dir=dir_name, delete=False, encoding="utf-8") as tf:
-                tf.write(html_data)
-                tf.flush()
-                temp_name = tf.name
-            os.replace(temp_name, html_path)
-            print("✅ 成功將頂部賽事資訊與大彩池注入 public/index.html！")
-        else:
-            print("ℹ️ 未找到 public/index.html。")
+                html_data = html_data.replace('<div class="container">', '<div class="container">\n' + exotics_box)
+                dir_name = os.path.dirname(html_path)
+                with tempfile.NamedTemporaryFile("w", dir=dir_name, delete=False, encoding="utf-8") as tf:
+                    tf.write(html_data)
+                    tf.flush()
+                    temp_name = tf.name
+                os.replace(temp_name, html_path)
+                print("✅ 成功將大彩池專區注入 public/index.html！")
+            else:
+                print("ℹ️ 大彩池專區已存在於 index.html 中。")
     except Exception as err:
         print(f"⚠️ HTML 注入時略過: {err}")
+    
+    print("✨ [SUCCESS] 全部量化策略與大彩池運算順利完成！\n")
 
-    print("✨ [SUCCESS] 全部量化策略與大彩池運算順利完成！")
+
+
 
 if __name__ == '__main__':
     run_smart_betslip()
