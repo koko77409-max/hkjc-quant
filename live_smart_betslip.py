@@ -1,4 +1,44 @@
 
+def build_race_meta_banner(race_date="2026/09/06", venue="沙田 (ST)", track="草地 - A 賽道", weather="大致多雲 / 29°C", condition="好地 (Good)"):
+    """構建網頁頂部賽事資訊卡片"""
+    import datetime
+    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    banner_html = f"""
+    <div style="background: linear-gradient(90deg, #1e293b 0%, #0f172a 100%); border: 1px solid #334155; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 15px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 26px;">🏇</span>
+                <div>
+                    <div style="font-size: 18px; font-weight: bold; color: #f8fafc; letter-spacing: 0.5px;">香港賽馬量化實戰監控</div>
+                    <div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">賽事日期：<strong style="color: #38bdf8;">{race_date}</strong></div>
+                </div>
+            </div>
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px;">
+                <div style="background: rgba(30, 41, 59, 0.8); border: 1px solid #475569; border-radius: 8px; padding: 6px 12px;">
+                    <span style="color: #94a3b8;">場地跑道：</span>
+                    <strong style="color: #f1f5f9;">{venue} | {track}</strong>
+                </div>
+                <div style="background: rgba(30, 41, 59, 0.8); border: 1px solid #475569; border-radius: 8px; padding: 6px 12px;">
+                    <span style="color: #94a3b8;">天氣：</span>
+                    <strong style="color: #facc15;">☁️ {weather}</strong>
+                </div>
+                <div style="background: rgba(30, 41, 59, 0.8); border: 1px solid #475569; border-radius: 8px; padding: 6px 12px;">
+                    <span style="color: #94a3b8;">場地狀況：</span>
+                    <strong style="color: #4ade80;">🌱 {condition}</strong>
+                </div>
+                <div style="background: rgba(30, 41, 59, 0.8); border: 1px solid #475569; border-radius: 8px; padding: 6px 12px;">
+                    <span style="color: #94a3b8;">盤口更新：</span>
+                    <strong style="color: #38bdf8;">{now_str}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+    """
+    return banner_html
+
+
 def archive_final_betslip(target_date, race_no, bets_list, exotics_dict):
     """將每一場的最終投注組合永久歸檔到 SQLite 與 JSON，便於賽後自動對獎"""
     import sqlite3, json, os
@@ -1128,6 +1168,14 @@ def run_smart_betslip(
                 html_data = f_in.read()
             if "非對稱大彩池量化推薦" not in html_data:
                 html_data = html_data.replace('<div class="container">', '<div class="container">\n' + exotics_box)
+
+    try:
+        banner_box = build_race_meta_banner()
+        if "香港賽馬量化實戰監控" not in html_data:
+            html_data = html_data.replace('<div class="container">', '<div class="container">\n' + banner_box)
+    except Exception as e:
+        print(f"⚠️ 頂部橫幅注入略過: {e}")
+
                 dir_name = os.path.dirname(html_path)
                 with tempfile.NamedTemporaryFile("w", dir=dir_name, delete=False, encoding="utf-8") as tf:
                     tf.write(html_data)
