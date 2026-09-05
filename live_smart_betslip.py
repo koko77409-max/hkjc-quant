@@ -1,51 +1,32 @@
-
 def select_value_portfolio(race_df, top_n_legs=4, min_prob=0.06, min_edge=1.18):
-    """
-    機構級抗風險選馬引擎：
-    1. 剔除退出馬與異常盤口
-    2. 超冷門馬 (>=35倍) 施加 15% 彩池折讓 (Exotic Haircut)，防止位置彩池被壓低
-    3. 配腳強制要求 Edge >= 1.18 安全邊際，抵禦臨場賠率雪崩
-    """
     if race_df is None or race_df.empty:
         return None, []
-    
     clean_df = race_df.copy()
-    
-    # 過濾退出馬與異常數據
     if 'status' in clean_df.columns:
         clean_df = clean_df[~clean_df['status'].astype(str).str.contains('Scratch|退出', na=False)]
     clean_df = clean_df[(clean_df['odds'] > 1.0) & (clean_df['model_prob'] > 0.01)]
     if clean_df.empty:
         return None, []
-        
-    # 計算安全折讓 Edge
     clean_df['safe_edge'] = clean_df.apply(
         lambda r: r['edge'] * 0.85 if r['odds'] >= 35.0 else r['edge'], axis=1
     )
-    
-    # 挑選全場最高勝率為核心膽馬
     sorted_prob = clean_df.sort_values('model_prob', ascending=False).reset_index(drop=True)
     banker = sorted_prob.iloc[0]
-    
-    # 配腳池：排除膽馬
     pool = clean_df[clean_df['horse_no'] != banker['horse_no']].copy()
-    
-    # 優先選取滿足勝率底線且具備安全邊際的價值馬 (safe_edge >= min_edge)
     qualified = pool[(pool['model_prob'] >= min_prob) & (pool['safe_edge'] >= min_edge)].sort_values('safe_edge', ascending=False)
-    
     if len(qualified) >= top_n_legs:
         selected_legs = qualified.head(top_n_legs)['horse_no'].tolist()
     else:
-        # 次選池：放寬至 safe_edge >= 1.05
         fallback = pool[(pool['model_prob'] >= min_prob) & (pool['safe_edge'] >= 1.05)].sort_values('safe_edge', ascending=False)
         combined = list(qualified['horse_no']) + [h for h in fallback['horse_no'] if h not in qualified['horse_no'].values]
         if len(combined) < top_n_legs:
-            # 依然不足則純以 safe_edge 降序補齊
             rem = pool.sort_values('safe_edge', ascending=False)
             combined = combined + [h for h in rem['horse_no'] if h not in combined]
         selected_legs = combined[:top_n_legs]
-        
     return banker, selected_legs
+
+
+
 
 def build_race_meta_banner(race_date='2026/09/06', venue='沙田 (ST)', track='草地 - A 賽道', weather='大致多雲 / 29°C', condition='好地 (Good)'):
     import datetime
@@ -75,11 +56,10 @@ def calculate_and_print_exotics(all_race_dfs):
         df = all_race_dfs[r_no]
         if df is None or df.empty or len(df) < 5:
             continue
-        banker, legs = select_value_portfolio(df, top_n_legs=4, min_prob=0.06)
+        banker, legs = select_value_portfolio(df, top_n_legs=4, min_prob=0.06, min_edge=1.18)
         b_no = banker['horse_no']
         top_prob = banker['model_prob']
         
-        # 勝率 >= 38% 採四重彩單膽拖高 Edge 腳；其餘採 5 匹四連環
         if top_prob >= 0.38:
             exotics['first4_quartet'].append({
                 'race_no': r_no,
@@ -102,11 +82,10 @@ def calculate_and_print_exotics(all_race_dfs):
             })
             print(f"🎯 第 {r_no} 場 四連環: 價值 5 匹複式 {picks} (5注 / $50)")
 
-    # 三 T (R4, R5, R6)
     if all(r in all_race_dfs and not all_race_dfs[r].empty for r in [4, 5, 6]):
         tt_legs = []
         for r in [4, 5, 6]:
-            b, l = select_value_portfolio(all_race_dfs[r], top_n_legs=3, min_prob=0.06)
+            b, l = select_value_portfolio(all_race_dfs[r], top_n_legs=3, min_prob=0.06, min_edge=1.18)
             tt_legs.append(f"R{r}:[{b['horse_no']}]膽拖{l}")
         tt_str = " | ".join(tt_legs)
         exotics['triple_trio'].append({
@@ -117,11 +96,10 @@ def calculate_and_print_exotics(all_race_dfs):
         })
         print(f"👑 三 T (R4-R6): {tt_str} (共 27 注 / $270)")
 
-    # 孖 T (R4, R5)
     if all(r in all_race_dfs and not all_race_dfs[r].empty for r in [4, 5]):
         dt_legs = []
         for r in [4, 5]:
-            b, l = select_value_portfolio(all_race_dfs[r], top_n_legs=4, min_prob=0.06)
+            b, l = select_value_portfolio(all_race_dfs[r], top_n_legs=4, min_prob=0.06, min_edge=1.18)
             dt_legs.append(f"R{r}:[{b['horse_no']}]膽拖{l}")
         dt_str = " | ".join(dt_legs)
         exotics['double_trio'].append({
@@ -132,7 +110,6 @@ def calculate_and_print_exotics(all_race_dfs):
         })
         print(f"👑 孖 T (R4-R5): {dt_str} (共 36 注 / $360)")
 
-    # 六寶獎 (R5-R10)
     if all(r in all_race_dfs and not all_race_dfs[r].empty for r in range(5, 11)):
         six_picks = [f"R{r}:({all_race_dfs[r].sort_values('model_prob', ascending=False).iloc[0]['horse_no']})" for r in range(5, 11)]
         six_str = " - ".join(six_picks)
@@ -146,6 +123,7 @@ def calculate_and_print_exotics(all_race_dfs):
         
     print("=" * 84)
     return exotics
+
 
 
 def render_exotics_html_box(exotics):
