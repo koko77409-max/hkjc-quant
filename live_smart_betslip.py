@@ -1159,47 +1159,41 @@ def run_smart_betslip(
     </div>
     """
 
-    # 安全注入 public/index.html (原子寫入防死鎖)
+    
+    # 安全注入大彩池、頂部資訊欄與歷史注單
     try:
         import os, tempfile
         html_path = os.path.abspath("public/index.html")
         if os.path.exists(html_path):
             with open(html_path, "r", encoding="utf-8", errors="ignore") as f_in:
                 html_data = f_in.read()
+
+            # 注入頂部環境資訊卡
+            banner_box = build_race_meta_banner()
+            if "香港賽馬量化實戰監控" not in html_data:
+                html_data = html_data.replace('<div class="container">', '<div class="container">
+' + banner_box)
+
+            # 注入大彩池專區
             if "非對稱大彩池量化推薦" not in html_data:
-                html_data = html_data.replace('<div class="container">', '<div class="container">\n' + exotics_box)
+                html_data = html_data.replace('<div class="container">', '<div class="container">
+' + exotics_box)
 
-    try:
-        banner_box = build_race_meta_banner()
-        if "香港賽馬量化實戰監控" not in html_data:
-            html_data = html_data.replace('<div class="container">', '<div class="container">\n' + banner_box)
-    except Exception as e:
-        print(f"⚠️ 頂部橫幅注入略過: {e}")
-
-                dir_name = os.path.dirname(html_path)
-                with tempfile.NamedTemporaryFile("w", dir=dir_name, delete=False, encoding="utf-8") as tf:
-                    tf.write(html_data)
-                    tf.flush()
-                    temp_name = tf.name
-                os.replace(temp_name, html_path)
-                print("✅ 成功將大彩池專區注入 public/index.html！")
-            else:
-                print("ℹ️ 大彩池專區已存在於 index.html 中。")
+            # 原子性寫入檔案，防鎖定
+            dir_name = os.path.dirname(html_path)
+            with tempfile.NamedTemporaryFile("w", dir=dir_name, delete=False, encoding="utf-8") as tf:
+                tf.write(html_data)
+                tf.flush()
+                temp_name = tf.name
+            os.replace(temp_name, html_path)
+            print("✅ 成功將頂部賽事資訊與大彩池注入 public/index.html！")
+        else:
+            print("ℹ️ 未找到 public/index.html。")
     except Exception as err:
         print(f"⚠️ HTML 注入時略過: {err}")
-    
-    
-    # 自動保存當天各場注單至 history_bets/ 與 SQLite
-    try:
-        for r_no in sorted(all_race_dfs.keys()):
-            df_r = all_race_dfs[r_no]
-            b_r = [b for b in active_bets if b.get('race_no') == r_no] if 'active_bets' in locals() else []
-            archive_final_betslip(target_date, r_no, b_r, exotics_obj)
-        print("💾 [ARCHIVE] 本輪各場最終注單已安全保存至 SQLite 及 history_bets/！")
-    except Exception as err:
-        print(f"⚠️ 注單自動保存略過: {err}")
 
-    print("✨ [SUCCESS] 全部量化策略與大彩池運算順利完成！\n")
+    print("✨ [SUCCESS] 全部量化策略與大彩池運算順利完成！
+")
 
 
 
