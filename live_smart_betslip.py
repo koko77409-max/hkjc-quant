@@ -1,3 +1,4 @@
+import joblib
 import time
 import sqlite3
 import os
@@ -165,6 +166,14 @@ def fetch_race_data(date_str: str, race_no: int, venue_code: str = 'ST') -> pd.D
 
     return pd.DataFrame(rows)
 
+
+MODEL_PATH = 'hkjc_model.pkl'
+try:
+    ranker = joblib.load(MODEL_PATH)
+except Exception as e:
+    print(f"警告: 無法載入模型 {MODEL_PATH}: {e}")
+    ranker = None
+
 def enrich_ranker_features(
     live_df: pd.DataFrame, conn: sqlite3.Connection
 ) -> pd.DataFrame:
@@ -289,7 +298,11 @@ def run_smart_betslip(
     full_df = enrich_ranker_features(raw_all_df, conn)
     conn.close()
 
-    full_df['rank_score'] = ranker.predict(full_df[FEATURES])
+    if ranker is not None:
+        full_df['rank_score'] = ranker.predict(full_df[FEATURES])
+    else:
+        # Fallback: 使用 win_odds 的隱含勝率作為基準分
+        full_df['rank_score'] = 1.0 / full_df['win_odds'].replace(0, np.nan).fillna(99.0)
     max_score = full_df.groupby('race_no')['rank_score'].transform('max')
     full_df['exp_score'] = np.exp(full_df['rank_score'] - max_score)
     sum_exp = full_df.groupby('race_no')['exp_score'].transform('sum')
