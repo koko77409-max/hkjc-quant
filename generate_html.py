@@ -669,7 +669,6 @@ html_template = f"""<!DOCTYPE html>
         </div>
         {races_html}
     </div>
-    {exotics_html}
 </body>
 </html>
 """
