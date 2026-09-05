@@ -1190,11 +1190,7 @@ def run_smart_betslip(
     except Exception as err:
         print(f"⚠️ HTML 注入時略過: {err}")
 
-    print("✨ [SUCCESS] 全部量化策略與大彩池運算順利完成！
-")
-
-
-
+    print("✨ [SUCCESS] 全部量化策略與大彩池運算順利完成！")
 
 if __name__ == '__main__':
     run_smart_betslip()
