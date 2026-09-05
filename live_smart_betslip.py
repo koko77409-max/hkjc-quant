@@ -1,10 +1,15 @@
+import sys, io
+if sys.platform.startswith('win'):
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
 
 def build_exotics_box(exotics):
     if not exotics: return ""
     h = """<div style="margin-bottom: 25px; background: linear-gradient(135deg, #1c1917 0%, #291e10 100%); border: 1px solid #f59e0b; border-radius: 12px; padding: 18px; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.15);">
         <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(245, 158, 11, 0.3); padding-bottom: 10px; margin-bottom: 12px;">
             <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 20px;">🎰</span>
+                <span style="font-size: 20px;">[EXOTIC]</span>
                 <span style="font-size: 16px; font-weight: bold; color: #fbbf24;">非對稱大彩池量化推薦 (Exotic Pools)</span>
             </div>
             <span style="font-size: 11px; background: #78350f; color: #fde68a; padding: 2px 8px; border-radius: 10px;">Henery 剪枝模型</span>
@@ -552,7 +557,7 @@ def run_smart_betslip(
         target_date, venue_code = get_upcoming_local_race()
 
     venue_name = '沙田 (ST)' if venue_code == 'ST' else '跑馬地 (HV)'
-    print(f'🚀 正在抓取香港本地賽事【 {target_date} {venue_name} 】排位量化分析...')
+    print(f'[START] 正在抓取香港本地賽事【 {target_date} {venue_name} 】排位量化分析...')
     conn = sqlite3.connect(DB_PATH)
 
     all_races_list = []
@@ -646,7 +651,7 @@ def run_smart_betslip(
 
     for race_no, group in full_df.groupby('race_no'):
         sorted_group = group.sort_values('model_rank')
-        print(f'\n🏇【 第 {race_no} 場 】（共 {len(sorted_group)} 匹馬）')
+        print(f'\n[RACE]【 第 {race_no} 場 】（共 {len(sorted_group)} 匹馬）')
         print('-' * 84)
         print(
             f"{'預測名次':<8} {'馬號':<6} {'馬名':<10} {'檔位':<6} {'騎師':<8} {'賠率':<8}"
@@ -775,7 +780,7 @@ def run_smart_betslip(
     else:
         print('  今日無勝率超過 28% 的超級單膽場次。')
 
-    print('\n【 🚀 策略四：穩健位置過關 (3 串 4 All-up) 】')
+    print('\n【 [START] 策略四：穩健位置過關 (3 串 4 All-up) 】')
     top_3_overall = full_df.sort_values('model_prob', ascending=False).head(3)
     if len(top_3_overall) == 3:
         for _, h in top_3_overall.iterrows():
