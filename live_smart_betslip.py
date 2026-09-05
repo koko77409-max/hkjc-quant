@@ -1,3 +1,29 @@
+
+def select_value_portfolio(race_df, top_n_legs=4, min_prob=0.06):
+    """
+    量化雙維度機構選馬模型：
+    - 膽馬：客觀勝率最高者 (保障穿透率)
+    - 配腳：勝率 >= min_prob 且 Edge 最高的潛在暴利馬 (徹底排除低水熱門)
+    """
+    if race_df is None or race_df.empty:
+        return None, []
+    
+    sorted_prob = race_df.sort_values('model_prob', ascending=False).reset_index(drop=True)
+    banker = sorted_prob.iloc[0]
+    
+    # 配腳池：剔除膽馬，要求勝率達到門檻，按 Edge 降序排列
+    pool = race_df[race_df['horse_no'] != banker['horse_no']].copy()
+    val_legs = pool[pool['model_prob'] >= min_prob].sort_values('edge', ascending=False)
+    
+    # 若符合門檻不足，用 Edge 最高者補足
+    if len(val_legs) < top_n_legs:
+        fallback = pool.sort_values('edge', ascending=False)
+        selected_legs = fallback.head(top_n_legs)['horse_no'].tolist()
+    else:
+        selected_legs = val_legs.head(top_n_legs)['horse_no'].tolist()
+        
+    return banker, selected_legs
+
 def build_race_meta_banner(race_date='2026/09/06', venue='沙田 (ST)', track='草地 - A 賽道', weather='大致多雲 / 29°C', condition='好地 (Good)'):
     import datetime
     now_str = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -17,89 +43,87 @@ def build_race_meta_banner(race_date='2026/09/06', venue='沙田 (ST)', track='�
 
 
 def calculate_and_print_exotics(all_race_dfs):
-    """記憶體直接計算，不讀取資料庫，防鎖定；同步終端機列印與 HTML 產出"""
     exotics = {'first4_quartet': [], 'triple_trio': [], 'double_trio': [], 'six_up': []}
+    print("=" * 84)
+    print("🎰 【 非對稱大彩池量化推薦 (Exotic Pools - 純 Edge 價值配腳) 】")
+    print("=" * 84)
     
-    print("\n" + "="*52)
-    print("🎰 【 非對稱大彩池量化推薦 (Exotic Pools) 】")
-    print("="*52)
-    
-    # 1. 四重彩 / 四連環
-    for r_no, df in all_race_dfs.items():
+    for r_no in sorted(all_race_dfs.keys()):
+        df = all_race_dfs[r_no]
         if df is None or df.empty or len(df) < 5:
             continue
-        sub = df.sort_values('win_prob', ascending=False).reset_index(drop=True)
-        top_prob = sub.loc[0, 'win_prob'] if 'win_prob' in sub.columns else 0
-        top5_horses = sub.head(5)['horse_no'].tolist()
+        banker, legs = select_value_portfolio(df, top_n_legs=4, min_prob=0.06)
+        b_no = banker['horse_no']
+        top_prob = banker['model_prob']
         
+        # 勝率 >= 38% 採四重彩單膽拖高 Edge 腳；其餘採 5 匹四連環
         if top_prob >= 0.38:
-            banker = top5_horses[0]
-            legs = top5_horses[1:5]
             exotics['first4_quartet'].append({
                 'race_no': r_no,
                 'pool': '四重彩 (Quartet)',
-                'structure': f"{banker} 號膽 拖 " + ",".join(map(str, legs)),
+                'structure': f"{b_no} 號膽 拖 " + ",".join(map(str, legs)),
                 'bets_count': 24,
                 'suggested_cost': 240,
-                'edge_reason': f"首選勝率高達 {top_prob*100:.1f}% (超強單膽)"
+                'edge_reason': f"首選勝率 {top_prob*100:.1f}%，配腳全為 Edge 排序價值馬"
             })
-            print(f"🎯 第 {r_no} 場 四重彩: [{banker} 號膽] 拖 {legs} (24注 / $240) - 首選勝率 {top_prob*100:.1f}%")
+            print(f"🎯 第 {r_no} 場 四重彩: [{b_no} 號膽] 拖 Edge精選 {legs} (24注 / $240)")
         else:
+            picks = [b_no] + legs
             exotics['first4_quartet'].append({
                 'race_no': r_no,
                 'pool': '四連環 (First 4)',
-                'structure': "5 匹複式: " + ",".join(map(str, top5_horses)),
+                'structure': "5 匹複式: " + ",".join(map(str, picks)),
                 'bets_count': 5,
                 'suggested_cost': 50,
-                'edge_reason': "勝率均勻，剪枝覆蓋 Top 5"
+                'edge_reason': "剔除熱門死注，鎖定全場 Edge 甜蜜點組合"
             })
-            print(f"🎯 第 {r_no} 場 四連環: 5匹複式 {top5_horses} (5注 / $50)")
+            print(f"🎯 第 {r_no} 場 四連環: 價值 5 匹複式 {picks} (5注 / $50)")
 
-    # 2. 三 T (R4, R5, R6)
+    # 三 T (R4, R5, R6)
     if all(r in all_race_dfs and not all_race_dfs[r].empty for r in [4, 5, 6]):
         tt_legs = []
         for r in [4, 5, 6]:
-            sub = all_race_dfs[r].sort_values('win_prob', ascending=False).reset_index(drop=True)
-            b = sub.loc[0, 'horse_no']
-            l = sub.loc[1:3, 'horse_no'].tolist()
-            tt_legs.append(f"R{r}:[{b}]膽拖{l}")
+            b, l = select_value_portfolio(all_race_dfs[r], top_n_legs=3, min_prob=0.06)
+            tt_legs.append(f"R{r}:[{b['horse_no']}]膽拖{l}")
+        tt_str = " | ".join(tt_legs)
         exotics['triple_trio'].append({
-            'structure': " | ".join(tt_legs),
+            'structure': tt_str,
             'bets_count': 27,
             'suggested_cost': 270,
-            'note': '每關 1 膽拖 3 腳，總注數壓縮至 27 注'
+            'note': '每關 1 穩健膽 + 3 匹 +EV 價值腳，拒買熱門死注'
         })
-        print(f"👑 三 T (R4-R6): {' | '.join(tt_legs)} (共 27 注 / $270)")
+        print(f"👑 三 T (R4-R6): {tt_str} (共 27 注 / $270)")
 
-    # 3. 孖 T (R4, R5)
+    # 孖 T (R4, R5)
     if all(r in all_race_dfs and not all_race_dfs[r].empty for r in [4, 5]):
         dt_legs = []
         for r in [4, 5]:
-            sub = all_race_dfs[r].sort_values('win_prob', ascending=False).reset_index(drop=True)
-            b = sub.loc[0, 'horse_no']
-            l = sub.loc[1:4, 'horse_no'].tolist()
-            dt_legs.append(f"R{r}:[{b}]膽拖{l}")
+            b, l = select_value_portfolio(all_race_dfs[r], top_n_legs=4, min_prob=0.06)
+            dt_legs.append(f"R{r}:[{b['horse_no']}]膽拖{l}")
+        dt_str = " | ".join(dt_legs)
         exotics['double_trio'].append({
-            'structure': " | ".join(dt_legs),
+            'structure': dt_str,
             'bets_count': 36,
             'suggested_cost': 360,
-            'note': '雙關高把握前三名組合覆蓋'
+            'note': '高穿透膽 + 4 匹高 Edge 配腳防禦'
         })
-        print(f"👑 孖 T (R4-R5): {' | '.join(dt_legs)} (共 36 注 / $360)")
+        print(f"👑 孖 T (R4-R5): {dt_str} (共 36 注 / $360)")
 
-    # 4. 六寶獎 (R5 ~ R10)
+    # 六寶獎 (R5-R10)
     if all(r in all_race_dfs and not all_race_dfs[r].empty for r in range(5, 11)):
-        picks = [f"R{r}:({all_race_dfs[r].sort_values('win_prob', ascending=False).iloc[0]['horse_no']})" for r in range(5, 11)]
+        six_picks = [f"R{r}:({all_race_dfs[r].sort_values('model_prob', ascending=False).iloc[0]['horse_no']})" for r in range(5, 11)]
+        six_str = " - ".join(six_picks)
         exotics['six_up'].append({
-            'structure': " - ".join(picks),
+            'structure': six_str,
             'bets_count': 1,
             'suggested_cost': 10,
-            'note': '純單選穿透路徑'
+            'note': '獨立勝率最高穿透路徑'
         })
-        print(f"⚡ 六寶獎 (R5-R10): {' - '.join(picks)} (單選穿透 / $10)")
+        print(f"⚡ 六寶獎 (R5-R10): {six_str} (單選穿透 / $10)")
         
-    print("="*52 + "\n")
+    print("=" * 84)
     return exotics
+
 
 def render_exotics_html_box(exotics):
     if not exotics:
