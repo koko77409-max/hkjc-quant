@@ -1,12 +1,13 @@
-from datetime import datetime, timezone, timedelta
-import sqlite3
+import os
+import subprocess
 import time
+from datetime import datetime, timedelta, timezone
 from live_smart_betslip import DB_PATH, fetch_race_data, get_upcoming_local_race
 import pandas as pd
-
+import sqlite3
 
 def init_odds_table():
-    """初始化賠率歷史流水表記錄庫"""
+    """初始化賠率歷史流水表"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
@@ -26,7 +27,6 @@ def init_odds_table():
     )
     conn.commit()
     conn.close()
-
 
 def scan_and_record_odds(target_date: str, venue_code: str) -> int:
     """掃描當前全場賠率並寫入資料庫"""
@@ -53,7 +53,7 @@ def scan_and_record_odds(target_date: str, venue_code: str) -> int:
                 float(row['win_odds']),
                 hkt_now,
             ))
-        time.sleep(0.2)
+        time.sleep(0.15)
 
     if records:
         conn.executemany(
@@ -64,18 +64,15 @@ def scan_and_record_odds(target_date: str, venue_code: str) -> int:
             records,
         )
         conn.commit()
-        print(
-            f'[{hkt_now}] 成功記錄 {target_date} 共 {len(records)} 筆即時賠率。'
-        )
+        print(f'[{hkt_now}] 成功記錄 {target_date} 共 {len(records)} 筆即時賠率。')
     else:
-        print(f'[{hkt_now}] 馬會尚未開售彩池，未有有效賠率。')
+        print(f'[{hkt_now}] 彩池尚未開售或未有有效賠率。')
 
     conn.close()
     return len(records)
 
-
 def get_odds_movement_summary(target_date: str) -> pd.DataFrame:
-    """計算各匹馬的初盤開售賠率、最新賠率與大戶落飛跌幅"""
+    """計算初盤、最新賠率與大戶落飛跌幅"""
     conn = sqlite3.connect(DB_PATH)
     query = f"""
     SELECT race_no, horse_no, horse_name, win_odds, record_time
@@ -83,8 +80,12 @@ def get_odds_movement_summary(target_date: str) -> pd.DataFrame:
     WHERE race_date = '{target_date}'
     ORDER BY record_time ASC
     """
-    df = pd.read_sql_query(query, conn)
-    conn.close()
+    try:
+        df = pd.read_sql_query(query, conn)
+    except Exception:
+        df = pd.DataFrame()
+    finally:
+        conn.close()
 
     if df.empty:
         return pd.DataFrame()
@@ -95,7 +96,6 @@ def get_odds_movement_summary(target_date: str) -> pd.DataFrame:
         current_odds = group.iloc[-1]['win_odds']
         h_name = group.iloc[-1]['horse_name']
 
-        # 計算跌幅：若 10.0 跌至 5.0， drop_pct = (10 - 5) / 10 = +50% (正數代表落飛，負數代表冷卻回升)
         drop_pct = (
             ((open_odds - current_odds) / open_odds) * 100.0
             if open_odds > 0
@@ -114,9 +114,48 @@ def get_odds_movement_summary(target_date: str) -> pd.DataFrame:
 
     return pd.DataFrame(summary)
 
+def run_pipeline():
+    """本地更新網頁並自動推送至 GitHub"""
+    print('🔄 正在重新生成 HTML 網頁...')
+    subprocess.run(['python', 'generate_html.py'], check=True)
 
-if __name__ == '__main__':
+    print('🚀 自動同步至 GitHub Pages...')
+    commands = [
+        ['git', 'add', 'public/index.html', 'hkjc_racing.db'],
+        ['git', 'commit', '-m', f'chore: live sync odds & betslip ({datetime.now().strftime("%H:%M:%S")})'],
+        ['git', 'push', 'origin', 'main']
+    ]
+    for cmd in commands:
+        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    print('✅ 本地同步完成，手機頁面已更新！\n')
+
+def main_loop(interval_minutes: int = 3):
+    """主循環常駐監控"""
     init_odds_table()
     target_date, venue_code = get_upcoming_local_race()
-    print(f'🚀 啟動即時賠率記錄，目標賽事：{target_date} ({venue_code})')
-    scan_and_record_odds(target_date, venue_code)
+    venue_name = '沙田 (ST)' if venue_code == 'ST' else '跑馬地 (HV)'
+    print('====================================================')
+    print(f'🏇 HKJC 本地常駐賠率監控已啟動！')
+    print(f'🎯 監控賽事: {target_date} {venue_name}')
+    print(f'⏱️ 輪詢間隔: 每 {interval_minutes} 分鐘自動檢查一次')
+    print('====================================================\n')
+
+    while True:
+        try:
+            hkt_now = datetime.now(timezone(timedelta(hours=8)))
+            print(f'>>> [{hkt_now.strftime("%H:%M:%S")}] 執行盤口掃描...')
+            n_records = scan_and_record_odds(target_date, venue_code)
+
+            if n_records > 0:
+                run_pipeline()
+            else:
+                print('暫無賠率變動，稍後再試。')
+
+        except Exception as e:
+            print(f'⚠️ 執行過程發生異常: {e}')
+
+        print(f'💤 等待 {interval_minutes} 分鐘後進行下次掃描... (按 Ctrl+C 可停止)\n')
+        time.sleep(interval_minutes * 60)
+
+if __name__ == '__main__':
+    main_loop(interval_minutes=3)
