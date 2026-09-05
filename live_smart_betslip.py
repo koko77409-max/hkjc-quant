@@ -1111,16 +1111,31 @@ def run_smart_betslip(
 
             banner_box = build_race_meta_banner() if 'build_race_meta_banner' in globals() else ''
             new_blocks = f"\n{banner_box}\n{exotics_box}\n"
+    # 無條件強制覆寫 public/index.html
+    try:
+        import os, datetime, re as _re
+        html_path = os.path.abspath('public/index.html')
+        if os.path.exists(html_path):
+            with open(html_path, 'r', encoding='utf-8', errors='ignore') as f_in:
+                cur_html = f_in.read()
+
+            # 清除舊版大彩池與頂部卡片殘留
+            cur_html = _re.sub(r'<div[^>]*>[\s\S]*?非對稱大彩池量化推薦[\s\S]*?<\/details>\s*<\/div>\s*<\/div>', '', cur_html)
+            cur_html = _re.sub(r'<div[^>]*>[\s\S]*?香港賽馬量化實戰監控[\s\S]*?<\/div>\s*<\/div>\s*<\/div>', '', cur_html)
+
+            # 更新標頭時間戳
+            now_ts = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            cur_html = _re.sub(r'\|\s*\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\s+更新', f'| {now_ts} 更新', cur_html)
+
+            banner_box = build_race_meta_banner() if 'build_race_meta_banner' in globals() else ''
+            new_blocks = f'\n{banner_box}\n{exotics_box}\n'
             cur_html = cur_html.replace('<div class="container">', '<div class="container">' + new_blocks)
 
-            with open(html_path, "w", encoding="utf-8") as f_out:
+            with open(html_path, 'w', encoding='utf-8') as f_out:
                 f_out.write(cur_html)
-            print(f"🔥 [SUCCESS] public/index.html 已強制刷新！最新時間戳: {now_ts}")
+            print(f'🔥 [SUCCESS] public/index.html 已強制刷新！最新時間戳: {now_ts}')
     except Exception as e:
-        print(f"⚠️ HTML 覆寫異常: {e}")
-    except Exception as err:
-        print(f"⚠️ HTML 注入時略過: {err}")
-    
+        print(f'⚠️ HTML 覆寫異常: {e}')
     print("✨ [SUCCESS] 全部量化策略與大彩池運算順利完成！\n")
 
 
