@@ -1,43 +1,34 @@
 
 def select_value_portfolio(race_df, top_n_legs=4, min_prob=0.06, min_edge=1.18):
-    """
-    機構級抗風險選馬引擎：
-    1. 剔除退出馬與異常盤口
-    2. 超冷門馬 (>=35倍) 施加 15% 彩池折讓 (Exotic Haircut)
-    3. 配腳強制要求 Edge >= 1.18 安全邊際，抵禦臨場賠率雪崩
-    """
     if race_df is None or race_df.empty:
         return None, []
-    
     clean_df = race_df.copy()
-    if 'status' in clean_df.columns:
-        clean_df = clean_df[~clean_df['status'].astype(str).str.contains('Scratch|退出', na=False)]
-    clean_df = clean_df[(clean_df['odds'] > 1.0) & (clean_df['model_prob'] > 0.01)]
+    if "status" in clean_df.columns:
+        clean_df = clean_df[~clean_df["status"].astype(str).str.contains("Scratch|退出", na=False)]
+    clean_df = clean_df[(clean_df["odds"] > 1.0) & (clean_df["model_prob"] > 0.01)]
     if clean_df.empty:
         return None, []
-        
-    clean_df['safe_edge'] = clean_df.apply(
-        lambda r: r['edge'] * 0.85 if r['odds'] >= 35.0 else r['edge'], axis=1
+    clean_df["safe_edge"] = clean_df.apply(
+        lambda r: r["edge"] * 0.85 if r["odds"] >= 35.0 else r["edge"], axis=1
     )
-    
-    sorted_prob = clean_df.sort_values('model_prob', ascending=False).reset_index(drop=True)
+    sorted_prob = clean_df.sort_values("model_prob", ascending=False).reset_index(drop=True)
     banker = sorted_prob.iloc[0]
-    pool = clean_df[clean_df['horse_no'] != banker['horse_no']].copy()
-    
-    qualified = pool[(pool['model_prob'] >= min_prob) & (pool['safe_edge'] >= min_edge)].sort_values('safe_edge', ascending=False)
+    pool = clean_df[clean_df["horse_no"] != banker["horse_no"]].copy()
+    qualified = pool[(pool["model_prob"] >= min_prob) & (pool["safe_edge"] >= min_edge)].sort_values("safe_edge", ascending=False)
     if len(qualified) >= top_n_legs:
-        selected_legs = qualified.head(top_n_legs)['horse_no'].tolist()
+        selected_legs = qualified.head(top_n_legs)["horse_no"].tolist()
     else:
-        fallback = pool[(pool['model_prob'] >= min_prob) & (pool['safe_edge'] >= 1.05)].sort_values('safe_edge', ascending=False)
-        combined = list(qualified['horse_no']) + [h for h in fallback['horse_no'] if h not in qualified['horse_no'].values]
+        fallback = pool[(pool["model_prob"] >= min_prob) & (pool["safe_edge"] >= 1.05)].sort_values("safe_edge", ascending=False)
+        combined = list(qualified["horse_no"]) + [h for h in fallback["horse_no"] if h not in qualified["horse_no"].values]
         if len(combined) < top_n_legs:
-            rem = pool.sort_values('safe_edge', ascending=False)
-            combined = combined + [h for h in rem['horse_no'] if h not in combined]
+            rem = pool.sort_values("safe_edge", ascending=False)
+            combined = combined + [h for h in rem["horse_no"] if h not in combined]
         selected_legs = combined[:top_n_legs]
-        
     return banker, selected_legs
 
+
 def build_race_meta_banner(race_date="2026/09/06", venue="沙田 (ST)", track="草地 - A 賽道", weather="大致多雲 / 29°C", condition="好地 (Good)"):
+    import datetime
     now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     return (
         '<div style="background: linear-gradient(90deg, #1e293b 0%, #0f172a 100%); border: 1px solid #334155; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">'
@@ -53,657 +44,340 @@ def build_race_meta_banner(race_date="2026/09/06", venue="沙田 (ST)", track="�
         '</div></div></div>'
     )
 
-
-def select_value_portfolio(race_df, top_n_legs=4, min_prob=0.06, min_edge=1.18):
-    if race_df is None or race_df.empty:
-        return None, []
-    clean_df = race_df.copy()
-    if 'status' in clean_df.columns:
-        clean_df = clean_df[~clean_df['status'].astype(str).str.contains('Scratch|退出', na=False)]
-    clean_df = clean_df[(clean_df['odds'] > 1.0) & (clean_df['model_prob'] > 0.01)]
-    if clean_df.empty:
-        return None, []
-    clean_df['safe_edge'] = clean_df.apply(
-        lambda r: r['edge'] * 0.85 if r['odds'] >= 35.0 else r['edge'], axis=1
-    )
-    sorted_prob = clean_df.sort_values('model_prob', ascending=False).reset_index(drop=True)
-    banker = sorted_prob.iloc[0]
-    pool = clean_df[clean_df['horse_no'] != banker['horse_no']].copy()
-    qualified = pool[(pool['model_prob'] >= min_prob) & (pool['safe_edge'] >= min_edge)].sort_values('safe_edge', ascending=False)
-    if len(qualified) >= top_n_legs:
-        selected_legs = qualified.head(top_n_legs)['horse_no'].tolist()
-    else:
-        fallback = pool[(pool['model_prob'] >= min_prob) & (pool['safe_edge'] >= 1.05)].sort_values('safe_edge', ascending=False)
-        combined = list(qualified['horse_no']) + [h for h in fallback['horse_no'] if h not in qualified['horse_no'].values]
-        if len(combined) < top_n_legs:
-            rem = pool.sort_values('safe_edge', ascending=False)
-            combined = combined + [h for h in rem['horse_no'] if h not in combined]
-        selected_legs = combined[:top_n_legs]
-    return banker, selected_legs
-
-
-
-
-
-
-def build_race_meta_banner(race_date='2026/09/06', venue='沙田 (ST)', track='草地 - A 賽道', weather='大致多雲 / 29°C', condition='好地 (Good)'):
-    import datetime
-    now_str = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    return (
-        '<div style="background: linear-gradient(90deg, #1e293b 0%, #0f172a 100%); border: 1px solid #334155; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">'
-        '<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 15px;">'
-        '<div style="display: flex; align-items: center; gap: 12px;"><span style="font-size: 26px;">🏇</span>'
-        '<div><div style="font-size: 18px; font-weight: bold; color: #f8fafc;">香港賽馬量化實戰監控</div>'
-        f'<div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">賽事日期：<strong style="color: #38bdf8;">{race_date}</strong></div></div></div>'
-        '<div style="display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px;">'
-        f'<div style="background: rgba(30, 41, 59, 0.8); border: 1px solid #475569; border-radius: 8px; padding: 6px 12px;"><span style="color: #94a3b8;">場地：</span><strong style="color: #f1f5f9;">{venue} | {track}</strong></div>'
-        f'<div style="background: rgba(30, 41, 59, 0.8); border: 1px solid #475569; border-radius: 8px; padding: 6px 12px;"><span style="color: #94a3b8;">天氣：</span><strong style="color: #facc15;">☁️ {weather}</strong></div>'
-        f'<div style="background: rgba(30, 41, 59, 0.8); border: 1px solid #475569; border-radius: 8px; padding: 6px 12px;"><span style="color: #94a3b8;">場地狀況：</span><strong style="color: #4ade80;">🌱 {condition}</strong></div>'
-        f'<div style="background: rgba(30, 41, 59, 0.8); border: 1px solid #475569; border-radius: 8px; padding: 6px 12px;"><span style="color: #94a3b8;">更新時間：</span><strong style="color: #38bdf8;">{now_str}</strong></div>'
-        '</div></div></div>'
-    )
-
-
-def calculate_and_print_exotics(all_race_dfs):
-    exotics = {'first4_quartet': [], 'triple_trio': [], 'double_trio': [], 'six_up': []}
-    print("=" * 84)
-    print("🎰 【 非對稱大彩池量化推薦 (Exotic Pools - 純 Edge 價值配腳) 】")
-    print("=" * 84)
-    for r_no in sorted(all_race_dfs.keys()):
-        df = all_race_dfs[r_no]
-        if df is None or df.empty or len(df) < 5:
-            continue
-        banker, legs = select_value_portfolio(df, top_n_legs=4, min_prob=0.06, min_edge=1.18)
-        b_no = banker['horse_no']
-        top_prob = banker['model_prob']
-        if top_prob >= 0.38:
-            exotics['first4_quartet'].append({
-                'race_no': r_no,
-                'pool': '四重彩 (Quartet)',
-                'structure': f"{b_no} 號膽 拖 " + ",".join(map(str, legs)),
-                'bets_count': 24,
-                'suggested_cost': 240,
-                'edge_reason': f"首選勝率 {top_prob*100:.1f}%，配腳全為 Edge 排序價值馬"
-            })
-            print(f"🎯 第 {r_no} 場 四重彩: [{b_no} 號膽] 拖 Edge精選 {legs} (24注 / $240)")
-        else:
-            picks = [b_no] + legs
-            exotics['first4_quartet'].append({
-                'race_no': r_no,
-                'pool': '四連環 (First 4)',
-                'structure': "5 匹複式: " + ",".join(map(str, picks)),
-                'bets_count': 5,
-                'suggested_cost': 50,
-                'edge_reason': "剔除熱門死注，鎖定全場 Edge 甜蜜點組合"
-            })
-            print(f"🎯 第 {r_no} 場 四連環: 價值 5 匹複式 {picks} (5注 / $50)")
-
-    if all(r in all_race_dfs and not all_race_dfs[r].empty for r in [4, 5, 6]):
-        tt_legs = []
-        for r in [4, 5, 6]:
-            b, l = select_value_portfolio(all_race_dfs[r], top_n_legs=3, min_prob=0.06, min_edge=1.18)
-            tt_legs.append(f"R{r}:[{b['horse_no']}]膽拖{l}")
-        tt_str = " | ".join(tt_legs)
-        exotics['triple_trio'].append({
-            'structure': tt_str,
-            'bets_count': 27,
-            'suggested_cost': 270,
-            'note': '每關 1 穩健膽 + 3 匹 +EV 價值腳'
-        })
-        print(f"👑 三 T (R4-R6): {tt_str} (共 27 注 / $270)")
-
-    if all(r in all_race_dfs and not all_race_dfs[r].empty for r in [4, 5]):
-        dt_legs = []
-        for r in [4, 5]:
-            b, l = select_value_portfolio(all_race_dfs[r], top_n_legs=4, min_prob=0.06, min_edge=1.18)
-            dt_legs.append(f"R{r}:[{b['horse_no']}]膽拖{l}")
-        dt_str = " | ".join(dt_legs)
-        exotics['double_trio'].append({
-            'structure': dt_str,
-            'bets_count': 36,
-            'suggested_cost': 360,
-            'note': '高穿透膽 + 4 匹高 Edge 配腳防禦'
-        })
-        print(f"👑 孖 T (R4-R5): {dt_str} (共 36 注 / $360)")
-
-    if all(r in all_race_dfs and not all_race_dfs[r].empty for r in range(5, 11)):
-        six_picks = [f"R{r}:({all_race_dfs[r].sort_values('model_prob', ascending=False).iloc[0]['horse_no']})" for r in range(5, 11)]
-        six_str = " - ".join(six_picks)
-        exotics['six_up'].append({
-            'structure': six_str,
-            'bets_count': 1,
-            'suggested_cost': 10,
-            'note': '獨立勝率最高穿透路徑'
-        })
-        print(f"⚡ 六寶獎 (R5-R10): {six_str} (單選穿透 / $10)")
-    print("=" * 84)
-    return exotics
-
-
-
-
-
-def render_exotics_html_box(exotics):
-    if not exotics:
-        return ""
-    h = """
-    <div style="margin-bottom: 25px; background: linear-gradient(135deg, #1c1917 0%, #291e10 100%); border: 1px solid #f59e0b; border-radius: 12px; padding: 18px; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.15);">
-        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(245, 158, 11, 0.3); padding-bottom: 10px; margin-bottom: 12px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 20px;">🎰</span>
-                <span style="font-size: 16px; font-weight: bold; color: #fbbf24;">非對稱大彩池量化推薦 (Exotic Pools)</span>
-            </div>
-            <span style="font-size: 11px; background: #78350f; color: #fde68a; padding: 2px 8px; border-radius: 10px;">Henery 剪枝模型</span>
-        </div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
-    """
-    if exotics.get('first4_quartet'):
-        h += '<div style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 12px; border-left: 3px solid #3b82f6;"><div style="color: #60a5fa; font-weight: bold; font-size: 13px; margin-bottom: 6px;">🎯 四重彩 / 四連環剪枝</div>'
-        for it in exotics['first4_quartet'][:3]:
-            h += f"""<div style="margin-bottom: 8px; font-size: 12px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 5px;">
-                <span style="background: #1d4ed8; color: white; padding: 1px 5px; border-radius: 4px; font-size: 10px;">第 {it['race_no']} 場</span>
-                <strong style="color: #f3f4f6; margin-left: 4px;">{it['pool']}</strong>
-                <div style="color: #fef08a; font-family: monospace; font-size: 13px; margin: 3px 0;">{it['structure']}</div>
-                <div style="color: #9ca3af; font-size: 11px;">注數: {it['bets_count']} 注 (${it['suggested_cost']}) | {it['edge_reason']}</div>
-            </div>"""
-        h += '</div>'
-        
-    if exotics.get('triple_trio'):
-        tt = exotics['triple_trio'][0]
-        h += f"""<div style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 12px; border-left: 3px solid #10b981;"><div style="color: #34d399; font-weight: bold; font-size: 13px; margin-bottom: 6px;">👑 孖 T / 三 T 膽拖</div>
-            <div style="margin-bottom: 8px; font-size: 12px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 5px;">
-                <span style="background: #047857; color: white; padding: 1px 5px; border-radius: 4px; font-size: 10px;">三 T (R4-R5-R6)</span>
-                <div style="color: #a7f3d0; font-family: monospace; font-size: 12px; margin: 3px 0;">{tt['structure']}</div>
-                <div style="color: #9ca3af; font-size: 11px;">注數: {tt['bets_count']} 注 (${tt['suggested_cost']}) | {tt['note']}</div>
-            </div>"""
-        if exotics.get('double_trio'):
-            dt = exotics['double_trio'][0]
-            h += f"""<div style="font-size: 12px;">
-                <span style="background: #047857; color: white; padding: 1px 5px; border-radius: 4px; font-size: 10px;">孖 T (R4-R5)</span>
-                <div style="color: #a7f3d0; font-family: monospace; font-size: 12px; margin: 3px 0;">{dt['structure']}</div>
-                <div style="color: #9ca3af; font-size: 11px;">注數: {dt['bets_count']} 注 (${dt['suggested_cost']}) | {dt['note']}</div>
-            </div>"""
-        h += '</div>'
-
-    if exotics.get('six_up'):
-        six = exotics['six_up'][0]
-        h += f"""<div style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 12px; border-left: 3px solid #a855f7;"><div style="color: #c084fc; font-weight: bold; font-size: 13px; margin-bottom: 6px;">⚡ 六寶獎 (Six-Up) 穿透路徑</div>
-            <div style="font-size: 12px;">
-                <span style="background: #7e22ce; color: white; padding: 1px 5px; border-radius: 4px; font-size: 10px;">R5 ~ R10</span>
-                <div style="color: #e9d5ff; font-family: monospace; font-size: 12px; margin: 3px 0;">{six['structure']}</div>
-                <div style="color: #9ca3af; font-size: 11px;">總注數: {six['bets_count']} 注 (${six['suggested_cost']}) | {six['note']}</div>
-            </div></div>"""
-            
-    h += "</div></div>"
-    return h
-
-import sys, io
-
-
-def build_exotics_box(exotics):
-    if not exotics: return ""
-    h = """<div style="margin-bottom: 25px; background: linear-gradient(135deg, #1c1917 0%, #291e10 100%); border: 1px solid #f59e0b; border-radius: 12px; padding: 18px; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.15);">
-        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(245, 158, 11, 0.3); padding-bottom: 10px; margin-bottom: 12px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 20px;">[EXOTIC]</span>
-                <span style="font-size: 16px; font-weight: bold; color: #fbbf24;">非對稱大彩池量化推薦 (Exotic Pools)</span>
-            </div>
-            <span style="font-size: 11px; background: #78350f; color: #fde68a; padding: 2px 8px; border-radius: 10px;">Henery 剪枝模型</span>
-        </div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">"""
-    if exotics.get('first4_quartet'):
-        h += '<div style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 12px; border-left: 3px solid #3b82f6;"><div style="color: #60a5fa; font-weight: bold; font-size: 13px; margin-bottom: 6px;">🎯 精選四重彩 / 四連環剪枝</div>'
-        for it in exotics['first4_quartet'][:3]:
-            h += f"""<div style="margin-bottom: 8px; font-size: 12px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 5px;">
-                <span style="background: #1d4ed8; color: white; padding: 1px 5px; border-radius: 4px; font-size: 10px;">第 {it['race_no']} 場</span>
-                <strong style="color: #f3f4f6; margin-left: 4px;">{it['pool']}</strong>
-                <div style="color: #fef08a; font-family: monospace; font-size: 13px; margin: 3px 0;">{it['structure']}</div>
-                <div style="color: #9ca3af; font-size: 11px;">注數: {it['bets_count']} 注 (${it['suggested_cost']}) | {it['edge_reason']}</div>
-            </div>"""
-        h += '</div>'
-    if exotics.get('triple_trio'):
-        tt = exotics['triple_trio'][0]
-        h += f"""<div style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 12px; border-left: 3px solid #10b981;"><div style="color: #34d399; font-weight: bold; font-size: 13px; margin-bottom: 6px;">👑 孖 T / 三 T 膽拖</div>
-            <div style="margin-bottom: 8px; font-size: 12px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 5px;">
-                <span style="background: #047857; color: white; padding: 1px 5px; border-radius: 4px; font-size: 10px;">三 T (R4-R5-R6)</span>
-                <div style="color: #a7f3d0; font-family: monospace; font-size: 12px; margin: 3px 0;">{tt['structure']}</div>
-                <div style="color: #9ca3af; font-size: 11px;">注數: {tt['bets_count']} 注 (${tt['suggested_cost']}) | {tt['note']}</div>
-            </div>"""
-        if exotics.get('double_trio'):
-            dt = exotics['double_trio'][0]
-            h += f"""<div style="font-size: 12px;">
-                <span style="background: #047857; color: white; padding: 1px 5px; border-radius: 4px; font-size: 10px;">孖 T (R4-R5)</span>
-                <div style="color: #a7f3d0; font-family: monospace; font-size: 12px; margin: 3px 0;">{dt['structure']}</div>
-                <div style="color: #9ca3af; font-size: 11px;">注數: {dt['bets_count']} 注 (${dt['suggested_cost']}) | {dt['note']}</div>
-            </div>"""
-        h += '</div>'
-    if exotics.get('six_up'):
-        six = exotics['six_up'][0]
-        h += f"""<div style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 12px; border-left: 3px solid #a855f7;"><div style="color: #c084fc; font-weight: bold; font-size: 13px; margin-bottom: 6px;">⚡ 六寶獎 (Six-Up) 穿透路徑</div>
-            <div style="font-size: 12px;">
-                <span style="background: #7e22ce; color: white; padding: 1px 5px; border-radius: 4px; font-size: 10px;">R5 ~ R10</span>
-                <div style="color: #e9d5ff; font-family: monospace; font-size: 12px; margin: 3px 0;">{six['structure']}</div>
-                <div style="color: #9ca3af; font-size: 11px;">總注數: {six['bets_count']} 注 (${six['suggested_cost']}) | {six['note']}</div>
-            </div></div>"""
-    h += "</div></div>"
-    return h
-
-
-def calculate_exotic_pools(all_race_dfs, bankroll=10000):
-    """
-    三大非對稱大彩池量化定價與剪枝模組：
-    1. 四連環 / 四重彩 (Henery-4 剪枝模型)
-    2. 孖 T / 三 T (高勝率單膽 + 價值配腳組合)
-    3. 孖寶 / 六寶獎 (連乘最大 EV 穿透路徑)
-    """
-    exotic_recommendations = {
-        'first4_quartet': [],
-        'double_trio': [],
-        'triple_trio': [],
-        'six_up': []
-    }
-    
-    # --- 模組 1: 單場四連環 / 四重彩 (First 4 / Quartet 剪枝) ---
-    for race_no, df in all_race_dfs.items():
-        if df.empty or len(df) < 6:
-            continue
-        sub = df.sort_values('win_prob', ascending=False).reset_index(drop=True)
-        # 挑選前 5 匹最高勝率馬匹
-        top5 = sub.head(5)
-        top1_prob = top5.loc[0, 'win_prob']
-        
-        # 情境 A: 遇到超強單膽 (勝率 >= 38%) -> 建議四重彩「1 膽拖 4 腳互串」(24 注，以 $10 計 $240)
-        if top1_prob >= 0.38:
-            banker = top5.loc[0, 'horse_no']
-            legs = top5.loc[1:4, 'horse_no'].tolist()
-            exotic_recommendations['first4_quartet'].append({
-                'race_no': race_no,
-                'pool': '四重彩 (Quartet)',
-                'structure': f"{banker} 號膽 拖 " + ",".join(map(str, legs)),
-                'bets_count': 24,
-                'suggested_cost': 240,
-                'edge_reason': f"首選勝率高達 {top1_prob*100:.1f}%，符合非對稱超強單膽形態"
-            })
-        # 情境 B: 均勢賽事 -> 建議四連環「5 匹複式」(5 注，以 $10 計 $50)
-        else:
-            picks = top5['horse_no'].tolist()
-            exotic_recommendations['first4_quartet'].append({
-                'race_no': race_no,
-                'pool': '四連環 (First 4)',
-                'structure': "5 匹複式: " + ",".join(map(str, picks)),
-                'bets_count': 5,
-                'suggested_cost': 50,
-                'edge_reason': "勝率分佈均勻，剪枝後覆蓋 Top 5 核心高價值馬匹"
-            })
-
-    # --- 模組 2: 孖 T (Double Trio) 與 三 T (Triple Trio) ---
-    # 通常三 T 為第 4, 5, 6 場；孖 T 多分佈在第 4-5 場與第 9-10 場
-    tt_races = [4, 5, 6]
-    dt_races = [4, 5]
-    
-    # 評估三 T 膽拖架構 (目標：總注數控制在 24 ~ 48 注之間)
-    if all(r in all_race_dfs and not all_race_dfs[r].empty for r in tt_races):
-        legs_plan = []
-        tt_total_bets = 1
-        for r in tt_races:
-            sub = all_race_dfs[r].sort_values('win_prob', ascending=False).reset_index(drop=True)
-            banker = sub.loc[0, 'horse_no']
-            legs = sub.loc[1:3, 'horse_no'].tolist()  # 1 膽拖 3 腳 (3 注)
-            legs_plan.append(f"R{r}: [{banker}] 膽 拖 {legs}")
-            tt_total_bets *= 3
-            
-        exotic_recommendations['triple_trio'].append({
-            'structure': " | ".join(legs_plan),
-            'bets_count': tt_total_bets,  # 3 * 3 * 3 = 27 注
-            'unit_price': 10,
-            'suggested_cost': tt_total_bets * 10,
-            'note': "每關嚴選 1 匹穩健膽配 3 匹配腳，將 24,000+ 注全複式壓縮至 27 注"
-        })
-
-    # 評估孖 T 膽拖架構
-    if all(r in all_race_dfs and not all_race_dfs[r].empty for r in dt_races):
-        dt_plan = []
-        dt_total_bets = 1
-        for r in dt_races:
-            sub = all_race_dfs[r].sort_values('win_prob', ascending=False).reset_index(drop=True)
-            banker = sub.loc[0, 'horse_no']
-            legs = sub.loc[1:4, 'horse_no'].tolist()  # 1 膽拖 4 腳 (6 注)
-            dt_plan.append(f"R{r}: [{banker}] 膽 拖 {legs}")
-            dt_total_bets *= 6
-            
-        exotic_recommendations['double_trio'].append({
-            'structure': " | ".join(dt_plan),
-            'bets_count': dt_total_bets,  # 6 * 6 = 36 注
-            'unit_price': 10,
-            'suggested_cost': dt_total_bets * 10,
-            'note': "次關雙膽防禦，覆蓋高概率前三名組合"
-        })
-
-    # --- 模組 3: 六寶獎 (Six Up, R5-R10) 穿透路徑 ---
-    six_races = [5, 6, 7, 8, 9, 10]
-    if all(r in all_race_dfs and not all_race_dfs[r].empty for r in six_races):
-        six_picks = []
-        total_six_bets = 1
-        for r in six_races:
-            sub = all_race_dfs[r].sort_values('win_prob', ascending=False).reset_index(drop=True)
-            # 若第一名勝率超過 35% 則作單選，否則雙選 (1 或 2 匹)
-            if sub.loc[0, 'win_prob'] >= 0.35:
-                picks = [str(sub.loc[0, 'horse_no'])]
-            else:
-                picks = [str(sub.loc[0, 'horse_no']), str(sub.loc[1, 'horse_no'])]
-            six_picks.append(f"R{r}:({','.join(picks)})")
-            total_six_bets *= len(picks)
-            
-        exotic_recommendations['six_up'].append({
-            'structure': " - ".join(six_picks),
-            'bets_count': total_six_bets,
-            'suggested_cost': total_six_bets * 10,
-            'note': f"動態單雙選混合結構，共 {total_six_bets} 注，避開全複式盲目膨脹"
-        })
-
-    return exotic_recommendations
-
-
-def apply_single_race_exposure_limit(bets, max_race_stake=350):
-    """
-    全域風控總閘：單場總注碼不超過 $350 (以 $10,000 本金計算，單場曝險嚴格壓在 3.5% 以內)
-    若超額則依比例縮減各策略注碼
-    """
-    total_requested = sum(b.get('stake', 0) for b in bets)
-    if total_requested <= max_race_stake or total_requested == 0:
-        return bets
-    
-    scale_factor = max_race_stake / total_requested
-    adjusted_bets = []
-    for b in bets:
-        raw_stake = b.get('stake', 0) * scale_factor
-        # 取整至馬會 $10 注碼單位，最低保留 $10
-        final_stake = max(10, int(round(raw_stake / 10.0) * 10))
-        b['stake'] = final_stake
-        adjusted_bets.append(b)
-    return adjusted_bets
-
-
-def calculate_quarter_kelly(win_prob, win_odds, bankroll=10000, max_bet_pct=0.03):
-    """
-    1/4 凱利注碼管理 (Quarter-Kelly)
-    - 防範破產風險與極端回撤
-    - 設定單注下注上限為總資金 3%
-    """
-    b = win_odds - 1.0
-    p = win_prob
-    q = 1.0 - p
-    if b <= 0 or p <= 0:
-        return 0
-    full_kelly = (b * p - q) / b
-    if full_kelly <= 0:
-        return 0
-    bet_fraction = min(full_kelly * 0.25, max_bet_pct)
-    # 取整到馬會法定 $10 注碼單位
-    suggested_stake = max(10, int(round(bankroll * bet_fraction / 10.0) * 10))
-    return suggested_stake
-
-
-def get_odds_velocity(conn, race_date, race_no, horse_no, current_odds):
-    """計算該馬近期賠率流速 (Steam / Drift)"""
-    try:
-        cur = conn.cursor()
-        cur.execute("""
-            SELECT win_odds FROM odds_snapshots 
-            WHERE race_date=? AND race_no=? AND horse_no=?
-            ORDER BY recorded_at DESC LIMIT 3
-        """, (race_date, race_no, str(horse_no)))
-        rows = cur.fetchall()
-        if len(rows) >= 2 and rows[1][0] and rows[1][0] > 0:
-            prev_odds = rows[1][0]
-            pct_change = (current_odds - prev_odds) / prev_odds
-            if pct_change <= -0.15:
-                return "🔥 資金急湧"
-            elif pct_change >= 0.20:
-                return "❄️ 資金冷退"
-    except:
-        pass
-    return ""
-
-
-def calculate_henery_qp_probabilities(probs, gamma=0.81):
-    """
-    Henery (1981) 模型計算前二名 (Quinella / QP) 條件機率
-    probs: 各馬勝率 array
-    gamma: 香港賽事校準衰減參數 (~0.81)
-    """
-    n = len(probs)
-    p_adj = np.power(probs, gamma)
-    pair_probs = {}
-    for i in range(n):
-        for j in range(i + 1, n):
-            # i 跑第 1, j 跑第 2 + j 跑第 1, i 跑第 2
-            p_i1_j2 = probs[i] * (p_adj[j] / (np.sum(p_adj) - p_adj[i] + 1e-9))
-            p_j1_i2 = probs[j] * (p_adj[i] / (np.sum(p_adj) - p_adj[j] + 1e-9))
-            pair_probs[(i, j)] = p_i1_j2 + p_j1_i2
-    return pair_probs
-
-
-def fetch_racecard_details(race_date_str, race_no):
-    """抓取馬會官方 HTML 排位表，提取體重、體重變化、評分、配備、近績"""
-    import requests
-    from bs4 import BeautifulSoup
-    
-    url = f"https://racing.hkjc.com/racing/information/Chinese/racing/RaceCard.aspx?RaceDate={race_date_str}&RaceNo={race_no}"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    }
-    details = {}
-    try:
-        res = requests.get(url, headers=headers, timeout=8)
-        res.encoding = 'utf-8'
-        soup = BeautifulSoup(res.text, 'html.parser')
-        table = soup.find('table', {'class': 'tableBorder0'}) or soup.find('table', {'class': 'draggable'})
-        if not table:
-            for t in soup.find_all('table'):
-                if '馬名' in t.text and '檔位' in t.text:
-                    table = t
-                    break
-        if table:
-            for r in table.find_all('tr'):
-                cols = [td.get_text(strip=True) for td in r.find_all('td')]
-                if cols and cols[0].isdigit():
-                    h_no = str(int(cols[0]))
-                    details[h_no] = {
-                        'recent_form': cols[1] if len(cols) > 1 else '',
-                        'rating': float(cols[11]) if len(cols) > 11 and cols[11].replace('-','').isdigit() else 0.0,
-                        'rating_diff': cols[12] if len(cols) > 12 else '',
-                        'body_weight': float(cols[13]) if len(cols) > 13 and cols[13].isdigit() else 0.0,
-                        'weight_diff': cols[14] if len(cols) > 14 else '',
-                        'gear': cols[22] if len(cols) > 22 else ''
-                    }
-    except Exception as e:
-        print(f"⚠️ 第 {race_no} 場抓取 HTML 排位細節失敗: {e}")
-    return details
-
-import joblib
-import time
+from datetime import datetime, timedelta
+import io
+import re
 import sqlite3
-import os
-import requests
-import json
-import pandas as pd
+import time
+import joblib
 import numpy as np
-
-DB_PATH = 'hkjc_racing.db'
-
-def get_upcoming_local_race():
-    return '2026/09/06', 'ST'
-
-EXACT_ODDS_QUERY = """query racing($date: String, $venueCode: String, $oddsTypes: [OddsType], $raceNo: Int) {
-  raceMeetings(date: $date, venueCode: $venueCode) {
-    pmPools(oddsTypes: $oddsTypes, raceNo: $raceNo) {
-      id
-      status
-      sellStatus
-      oddsType
-      lastUpdateTime
-      guarantee
-      minTicketCost
-      name_en
-      name_ch
-      leg {
-        number
-        races
-      }
-      cWinSelections {
-        composite
-        name_ch
-        name_en
-        starters
-      }
-      oddsNodes {
-        combString
-        oddsValue
-        hotFavourite
-        oddsDropValue
-        bankerOdds {
-          combString
-          oddsValue
-        }
-      }
-    }
-  }
-}"""
-
-_CACHED_RUNNERS = {}
-
-def get_base_runners(date_str: str, venue_code: str):
-    """讀取全日基本排位資料"""
-    global _CACHED_RUNNERS
-    if _CACHED_RUNNERS:
-        return _CACHED_RUNNERS
-
-    url = 'https://info.cld.hkjc.com/graphql/base/'
-    headers = {
-        'accept': '*/*',
-        'content-type': 'application/json',
-        'origin': 'https://bet.hkjc.com',
-        'referer': 'https://bet.hkjc.com/',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36'
-    }
-
-    payload_file = os.path.join(os.path.dirname(__file__), 'gql_payload.json')
-    if not os.path.exists(payload_file):
-        payload_file = 'gql_payload.json'
-
-        with open(payload_file, 'r', encoding='utf-8') as pf:
-            payload = json.load(pf)
-        payload['variables'] = {
-            'date': date_str.replace('/', '-'),
-            'venueCode': venue_code
-        }
-        r = requests.post(url, headers=headers, json=payload, timeout=10)
-        if r.status_code == 200:
-            res_json = r.json()
-            meetings = res_json.get('data', {}).get('raceMeetings', [])
-            if meetings:
-                for race in meetings[0].get('races', []):
-                    r_no = int(race.get('no', 0))
-                    runners_list = []
-                    for runner in race.get('runners', []):
-                        raw_no = str(runner.get('no') or '').strip()
-                        # 嚴格過濾：若非正選純數字號碼（如後備馬、退出馬），直接跳過不收錄
-                        if not raw_no.isdigit() or int(raw_no) <= 0:
-                            continue
-                        clean_no = str(int(raw_no))
-                        runners_list.append({
-                            'race_date': date_str,
-                            'race_no': r_no,
-                            'horse_no': clean_no,
-                            'horse_name': runner.get('name_ch', ''),
-                            'horse_code': runner.get('horse', {}).get('code', '') if runner.get('horse') else '',
-                            'actual_weight': runner.get('handicapWeight'),
-                            'jockey': runner.get('jockey', {}).get('name_ch', '') if runner.get('jockey') else '',
-                            'draw': runner.get('barrierDrawNumber'),
-                            'trainer': runner.get('trainer', {}).get('name_ch', '') if runner.get('trainer') else '',
-                            'declared_weight': np.nan
-                        })
-                    _CACHED_RUNNERS[r_no] = runners_list
-    except Exception as e:
-        print(f"排位讀取異常: {e}")
-
-    return _CACHED_RUNNERS
-
-def fetch_race_data(date_str: str, race_no: int, venue_code: str = 'ST') -> pd.DataFrame:
-    runners_map = get_base_runners(date_str, venue_code)
-    base_list = runners_map.get(int(race_no), [])
-    if not base_list:
-        return pd.DataFrame()
-
-    url = 'https://info.cld.hkjc.com/graphql/base/'
-    headers = {
-        'accept': '*/*',
-        'content-type': 'application/json',
-        'origin': 'https://bet.hkjc.com',
-        'referer': 'https://bet.hkjc.com/',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36'
-    }
-
-    target_date = date_str.replace('/', '-')
-    odds_payload = {
-        "operationName": "racing",
-        "variables": {
-            "date": target_date,
-            "venueCode": venue_code,
-            "raceNo": int(race_no),
-            "oddsTypes": ["WIN", "PLA"]
-        },
-        "query": EXACT_ODDS_QUERY
-    }
-
-    win_odds_dict = {}
-    try:
-        r = requests.post(url, headers=headers, json=odds_payload, timeout=8)
-        if r.status_code == 200:
-            res_json = r.json()
-            meetings = res_json.get('data', {}).get('raceMeetings', [])
-            if meetings:
-                pools = meetings[0].get('pmPools', [])
-                for p in pools:
-                    if p.get('oddsType') == 'WIN':
-                        for node in p.get('oddsNodes', []):
-                            c_str = str(node.get('combString', '')).strip()
-                            if c_str:
-                                try:
-                                    f_val = float(node.get('oddsValue'))
-                                    clean_hno = str(int(c_str))
-                                    # 同步相容 '1' 與 '01' 兩種 key
-                                    win_odds_dict[clean_hno] = f_val
-                                    win_odds_dict[c_str] = f_val
-                                except:
-                                    pass
-    except Exception as e:
-        print(f"第 {race_no} 場賠率獲取異常: {e}")
-
-    rows = []
-    for r in base_list:
-        row = dict(r)
-        h_no = str(row['horse_no']).strip()
-        clean_key = str(int(h_no)) if h_no.isdigit() else h_no
-        row['win_odds'] = win_odds_dict.get(clean_key, win_odds_dict.get(h_no, np.nan))
-        rows.append(row)
-
-    return pd.DataFrame(rows)
-
+import pandas as pd
+import requests
 
 MODEL_PATH = 'hkjc_model.pkl'
-FEATURES = [
-    'rel_weight', 'rel_draw', 'rel_jockey_rate', 'rel_trainer_rate',
-    'rel_prev_tb', 'horse_prev_tb', 'horse_prev_rank', 'jockey_place_rate',
-    'trainer_place_rate', 'draw', 'actual_weight', 'horse_career_runs'
-]
+DB_PATH = 'hkjc_racing.db'
 
 try:
     ranker = joblib.load(MODEL_PATH)
 except Exception as e:
-    print(f"警告: 無法載入模型 {MODEL_PATH}: {e}")
-    ranker = None
+    print(f'❌ 無法載入模型檔案 {MODEL_PATH}，請確認檔案存在。錯誤：{e}')
+    exit()
+
+headers = {
+    'User-Agent': (
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,'
+        ' like Gecko) Chrome/124.0.0.0 Safari/537.36'
+    ),
+    'Accept-Language': 'zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7',
+    'Referer': 'https://racing.hkjc.com/racing/information/Chinese/Racing/RaceCard.aspx',
+}
+
+FEATURES = [
+    'rel_weight',
+    'rel_draw',
+    'rel_jockey_rate',
+    'rel_trainer_rate',
+    'rel_prev_tb',
+    'horse_prev_tb',
+    'horse_prev_rank',
+    'jockey_place_rate',
+    'trainer_place_rate',
+    'draw',
+    'actual_weight',
+    'horse_career_runs',
+]
+
+
+def fetch_race_data(
+    race_date_str: str, race_no: int, venue_code: str = 'ST'
+) -> pd.DataFrame:
+    """精準抓取香港本地排位表（只對準沙田 ST 或跑馬地 HV）"""
+    clean_date = race_date_str.replace('/', '')
+
+    candidate_urls = [
+        f'https://racing.hkjc.com/racing/information/Chinese/Racing/RaceCard.aspx?RaceDate={race_date_str}&Racecourse={venue_code}&RaceNo={race_no}',
+        f'https://racing.hkjc.com/racing/information/Chinese/Racing/RaceCard.aspx?RaceDate={clean_date}&Racecourse={venue_code}&RaceNo={race_no}',
+        f'https://racing.hkjc.com/racing/information/Chinese/Racing/RaceCard.aspx?RaceDate={race_date_str}&RaceNo={race_no}',
+    ]
+
+    for url in candidate_urls:
+        try:
+            res = requests.get(url, headers=headers, timeout=10)
+            res.encoding = 'utf-8'
+
+            if res.status_code != 200:
+                continue
+
+            # 嚴格過濾海外轉播賽事標籤
+            if any(
+                tag in res.text
+                for tag in ['越洋轉播賽事', 'S1-', 'S2-', 'S3-', '海外賽事']
+            ):
+                continue
+
+            dfs = pd.read_html(io.StringIO(res.text))
+            for df in dfs:
+                if isinstance(df.columns, pd.MultiIndex):
+                    flat_cols = []
+                    for col in df.columns:
+                        valid_levels = [
+                            str(c).strip()
+                            for c in col
+                            if str(c).strip() and 'Unnamed' not in str(c)
+                        ]
+                        flat_cols.append(
+                            valid_levels[-1] if valid_levels else str(col[0])
+                        )
+                    df.columns = flat_cols
+                else:
+                    df.columns = [str(c).strip() for c in df.columns]
+
+                has_name = any('馬名' in c for c in df.columns)
+                has_jockey = any('騎師' in c for c in df.columns)
+                has_no = any(
+                    '馬號' in c or c == '號' or (c.endswith('號') and '烙' not in c)
+                    for c in df.columns
+                )
+
+                if has_name and has_jockey and has_no:
+                    col_map = {}
+                    for c in df.columns:
+                        c_str = str(c).strip()
+                        if (
+                            c_str in ['馬號', '號']
+                            or (c_str.endswith('號') and '烙' not in c_str)
+                        ) and 'horse_no' not in col_map:
+                            col_map['horse_no'] = c
+                        elif '馬名' in c_str and 'horse_name' not in col_map:
+                            col_map['horse_name'] = c
+                        elif (
+                            '烙號' in c_str or '編號' in c_str or '烙' in c_str
+                        ) and 'horse_code' not in col_map:
+                            col_map['horse_code'] = c
+                        elif (
+                            '負磅' in c_str or '配磅' in c_str
+                        ) and 'actual_weight' not in col_map:
+                            col_map['actual_weight'] = c
+                        elif '騎師' in c_str and 'jockey' not in col_map:
+                            col_map['jockey'] = c
+                        elif (
+                            c_str in ['檔位', '檔'] or c_str.endswith('檔位')
+                        ) and 'draw' not in col_map:
+                            col_map['draw'] = c
+                        elif '練馬師' in c_str and 'trainer' not in col_map:
+                            col_map['trainer'] = c
+                        elif (
+                            '排位體重' in c_str or '體重' in c_str
+                        ) and 'declared_weight' not in col_map:
+                            col_map['declared_weight'] = c
+                        elif (
+                            '獨贏' in c_str or '賠率' in c_str
+                        ) and 'win_odds' not in col_map:
+                            col_map['win_odds'] = c
+
+                    if 'horse_no' not in col_map or 'horse_name' not in col_map:
+                        continue
+
+                    records = []
+                    for _, row in df.iterrows():
+                        h_no_val = str(row[col_map['horse_no']]).strip()
+                        if not h_no_val.isdigit():
+                            continue
+
+                        raw_name = str(row[col_map['horse_name']]).strip()
+                        match = re.search(
+                            r'^(.*?)\s*[\(\（]([A-Z0-9]+)[\)\）]', raw_name
+                        )
+                        if match:
+                            h_name = match.group(1).strip()
+                            h_code = match.group(2).strip()
+                        else:
+                            h_name = raw_name
+                            h_code = (
+                                str(row[col_map['horse_code']]).strip()
+                                if 'horse_code' in col_map
+                                and pd.notnull(row[col_map['horse_code']])
+                                else h_name
+                            )
+
+                        jock_raw = str(
+                            row.get(col_map.get('jockey', ''), '')
+                        ).strip()
+                        jock_clean = re.sub(
+                            r'\s*[\(\（].*?[\)\）]', '', jock_raw
+                        ).strip()
+
+                        trnr_raw = str(
+                            row.get(col_map.get('trainer', ''), '')
+                        ).strip()
+                        trnr_clean = re.sub(
+                            r'\s*[\(\（].*?[\)\）]', '', trnr_raw
+                        ).strip()
+
+                        win_odds = np.nan
+                        if 'win_odds' in col_map:
+                            try:
+                                raw_odds = (
+                                    str(row[col_map['win_odds']])
+                                    .replace(',', '')
+                                    .strip()
+                                )
+                                val = float(raw_odds)
+                                if val > 1.0:
+                                    win_odds = val
+                            except Exception:
+                                win_odds = np.nan
+
+                        act_wt = (
+                            pd.to_numeric(
+                                row.get(col_map.get('actual_weight', ''), 120),
+                                errors='coerce',
+                            )
+                            or 120.0
+                        )
+                        drw = (
+                            pd.to_numeric(
+                                row.get(col_map.get('draw', ''), 7),
+                                errors='coerce',
+                            )
+                            or 7.0
+                        )
+                        dec_wt = (
+                            pd.to_numeric(
+                                row.get(
+                                    col_map.get('declared_weight', ''), 1100
+                                ),
+                                errors='coerce',
+                            )
+                            or 1100.0
+                        )
+
+                        records.append({
+                            'race_date': race_date_str,
+                            'race_no': race_no,
+                            'horse_no': h_no_val,
+                            'horse_name': h_name,
+                            'horse_code': h_code,
+                            'actual_weight': act_wt,
+                            'jockey': jock_clean,
+                            'draw': drw,
+                            'trainer': trnr_clean,
+                            'declared_weight': dec_wt,
+                            'win_odds': win_odds,
+                        })
+
+                    if len(records) >= 4:
+                        return pd.DataFrame(records)
+        except Exception:
+            continue
+
+    return pd.DataFrame()
+
+
+def get_upcoming_local_race() -> tuple[str, str]:
+    """三層防護：嚴格鎖定香港本地賽事 (沙田 ST 或 跑馬地 HV)，排除海外賽事
+
+    返回: (race_date 'YYYY/MM/DD', venue_code 'ST'|'HV')
+    """
+    today_str = datetime.now().strftime('%Y/%m/%d')
+
+    # 策略 1：從馬會官方賽期表 (Fixture.aspx) 獲取本地賽日曆
+    try:
+        fixture_url = 'https://racing.hkjc.com/racing/information/Chinese/Racing/Fixture.aspx'
+        f_res = requests.get(fixture_url, headers=headers, timeout=10)
+        f_res.encoding = 'utf-8'
+
+        dfs = pd.read_html(io.StringIO(f_res.text))
+        fixture_candidates = []
+        for df in dfs:
+            for _, row in df.iterrows():
+                row_str = ' '.join([str(v) for v in row.values])
+                if any(
+                    w in row_str
+                    for w in [
+                        '越洋',
+                        'S1',
+                        'S2',
+                        'S3',
+                        'S4',
+                        '海外',
+                        '轉播',
+                        'Simulcast',
+                    ]
+                ):
+                    continue
+
+                venue = None
+                if '沙田' in row_str or 'Sha Tin' in row_str:
+                    venue = 'ST'
+                elif (
+                    '跑馬地' in row_str
+                    or '快活谷' in row_str
+                    or 'Happy Valley' in row_str
+                ):
+                    venue = 'HV'
+
+                if venue:
+                    m_d1 = re.search(r'(\d{1,2})/(\d{1,2})/(\d{4})', row_str)
+                    m_d2 = re.search(r'(\d{4})/(\d{1,2})/(\d{1,2})', row_str)
+                    m_d3 = re.search(r'(\d{4})年(\d{1,2})月(\d{1,2})日', row_str)
+
+                    d_fmt = None
+                    if m_d1:
+                        d_fmt = f'{m_d1.group(3)}/{int(m_d1.group(2)):02d}/{int(m_d1.group(1)):02d}'
+                    elif m_d2:
+                        d_fmt = f'{m_d2.group(1)}/{int(m_d2.group(2)):02d}/{int(m_d2.group(3)):02d}'
+                    elif m_d3:
+                        d_fmt = f'{m_d3.group(1)}/{int(m_d3.group(2)):02d}/{int(m_d3.group(3)):02d}'
+
+                    if d_fmt and d_fmt >= today_str:
+                        fixture_candidates.append((d_fmt, venue))
+
+        if fixture_candidates:
+            fixture_candidates.sort(key=lambda x: x[0])
+            return fixture_candidates[0]
+    except Exception:
+        pass
+
+    # 策略 2：從即時排位首頁解析中文賽期
+    try:
+        url = 'https://racing.hkjc.com/racing/information/Chinese/Racing/RaceCard.aspx'
+        res = requests.get(url, headers=headers, timeout=10)
+        res.encoding = 'utf-8'
+        html = res.text
+
+        is_overseas = any(
+            w in html for w in ['越洋轉播', '海外賽事', 'S1-', 'S2-', 'S3-']
+        )
+        if not is_overseas:
+            venue = (
+                'HV'
+                if any(
+                    w in html
+                    for w in ['跑馬地', '快活谷', 'Happy Valley', 'Racecourse=HV']
+                )
+                else 'ST'
+            )
+            m_cn = re.search(r'(\d{4})年(\d{1,2})月(\d{1,2})日', html)
+            if m_cn:
+                d_str = f'{m_cn.group(1)}/{int(m_cn.group(2)):02d}/{int(m_cn.group(3)):02d}'
+                if d_str >= today_str:
+                    return d_str, venue
+    except Exception:
+        pass
+
+    # 策略 3：終極實體驗證 - 往後探測未來 7 天內真正有香港排位的賽事日
+    for offset in range(0, 8):
+        test_date = (datetime.now() + timedelta(days=offset)).strftime(
+            '%Y/%m/%d'
+        )
+        for v in ['ST', 'HV']:
+            test_df = fetch_race_data(test_date, 1, v)
+            if not test_df.empty and len(test_df) >= 4:
+                return test_date, v
+
+    return '2026/09/06', 'ST'
+
 
 def enrich_ranker_features(
     live_df: pd.DataFrame, conn: sqlite3.Connection
@@ -752,7 +426,7 @@ def enrich_ranker_features(
             'horse_prev_rank': float(horse_prev_rank),
             'jockey_place_rate': float(jockey_place_rate),
             'trainer_place_rate': float(trainer_place_rate),
-            'draw': float(row['draw']) if pd.notnull(row['draw']) and str(row['draw']).strip() != '' else 7.0,
+            'draw': float(row['draw']) if pd.notnull(row['draw']) else 7.0,
             'actual_weight': (
                 float(row['actual_weight'])
                 if pd.notnull(row['actual_weight'])
@@ -792,7 +466,7 @@ def run_smart_betslip(
         target_date, venue_code = get_upcoming_local_race()
 
     venue_name = '沙田 (ST)' if venue_code == 'ST' else '跑馬地 (HV)'
-    print(f'[START] 正在抓取香港本地賽事【 {target_date} {venue_name} 】排位量化分析...')
+    print(f'🚀 正在抓取香港本地賽事【 {target_date} {venue_name} 】排位量化分析...')
     conn = sqlite3.connect(DB_PATH)
 
     all_races_list = []
@@ -829,11 +503,7 @@ def run_smart_betslip(
     full_df = enrich_ranker_features(raw_all_df, conn)
     conn.close()
 
-    if ranker is not None:
-        full_df['rank_score'] = ranker.predict(full_df[FEATURES])
-    else:
-        # Fallback: 使用 win_odds 的隱含勝率作為基準分
-        full_df['rank_score'] = 1.0 / full_df['win_odds'].replace(0, np.nan).fillna(99.0)
+    full_df['rank_score'] = ranker.predict(full_df[FEATURES])
     max_score = full_df.groupby('race_no')['rank_score'].transform('max')
     full_df['exp_score'] = np.exp(full_df['rank_score'] - max_score)
     sum_exp = full_df.groupby('race_no')['exp_score'].transform('sum')
@@ -886,7 +556,7 @@ def run_smart_betslip(
 
     for race_no, group in full_df.groupby('race_no'):
         sorted_group = group.sort_values('model_rank')
-        print(f'\n[RACE]【 第 {race_no} 場 】（共 {len(sorted_group)} 匹馬）')
+        print(f'\n🏇【 第 {race_no} 場 】（共 {len(sorted_group)} 匹馬）')
         print('-' * 84)
         print(
             f"{'預測名次':<8} {'馬號':<6} {'馬名':<10} {'檔位':<6} {'騎師':<8} {'賠率':<8}"
@@ -929,7 +599,7 @@ def run_smart_betslip(
         value_bets = full_df[
             (full_df['model_rank'] == 1)
             & (full_df['win_odds'] >= 1.5)
-            & (full_df['win_odds'] <= 4.5)
+            & (full_df['win_odds'] <= 3.0)
             & (full_df['model_prob'] >= 0.25)
             & (full_df['edge'] >= 1.00)
         ].copy()
@@ -1015,7 +685,7 @@ def run_smart_betslip(
     else:
         print('  今日無勝率超過 28% 的超級單膽場次。')
 
-    print('\n【 [START] 策略四：穩健位置過關 (3 串 4 All-up) 】')
+    print('\n【 🚀 策略四：穩健位置過關 (3 串 4 All-up) 】')
     top_3_overall = full_df.sort_values('model_prob', ascending=False).head(3)
     if len(top_3_overall) == 3:
         for _, h in top_3_overall.iterrows():
@@ -1030,128 +700,6 @@ def run_smart_betslip(
         )
 
     print('=' * 84 + '\n')
-
-    # --- 大彩池 (Exotic Pools) 量化運算與終端機輸出 ---
-    print("=" * 84)
-    print("🎰 【 非對稱大彩池量化推薦 (Exotic Pools) 】")
-    print("=" * 84)
-    exotics_cards_html = ""
-    
-    # 1. 四重彩 / 四連環
-    exotics_f4_html = ""
-    for r_no in sorted(full_df['race_no'].unique()):
-        r_df = full_df[full_df['race_no'] == r_no].sort_values('model_prob', ascending=False).reset_index(drop=True)
-        if len(r_df) < 5:
-            continue
-        top_p = r_df.loc[0, 'model_prob']
-        top5_nums = r_df.head(5)['horse_no'].tolist()
-        if top_p >= 0.38:
-            banker = top5_nums[0]
-            legs = top5_nums[1:5]
-            print(f"🎯 第 {r_no} 場 四重彩: [{banker} 號膽] 拖 {legs} (24注 / $240) - 首選勝率 {top_p*100:.1f}%")
-            exotics_f4_html += f"""
-            <div style="margin-bottom: 8px; font-size: 12px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 5px;">
-                <span style="background: #1d4ed8; color: white; padding: 1px 5px; border-radius: 4px; font-size: 10px;">第 {r_no} 場</span>
-                <strong style="color: #f3f4f6; margin-left: 4px;">四重彩 (Quartet)</strong>
-                <div style="color: #fef08a; font-family: monospace; font-size: 13px; margin: 3px 0;">{banker} 號膽 拖 {','.join(map(str, legs))}</div>
-                <div style="color: #9ca3af; font-size: 11px;">注數: 24 注 ($240) | 首選勝率 {top_p*100:.1f}% (超強單膽)</div>
-            </div>"""
-        else:
-            print(f"🎯 第 {r_no} 場 四連環: 5 匹複式 {top5_nums} (5注 / $50)")
-            exotics_f4_html += f"""
-            <div style="margin-bottom: 8px; font-size: 12px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 5px;">
-                <span style="background: #1d4ed8; color: white; padding: 1px 5px; border-radius: 4px; font-size: 10px;">第 {r_no} 場</span>
-                <strong style="color: #f3f4f6; margin-left: 4px;">四連環 (First 4)</strong>
-                <div style="color: #fef08a; font-family: monospace; font-size: 13px; margin: 3px 0;">5 匹複式: {','.join(map(str, top5_nums))}</div>
-                <div style="color: #9ca3af; font-size: 11px;">注數: 5 注 ($50) | 剪枝覆蓋 Top 5</div>
-            </div>"""
-
-    # 2. 三 T 與 孖 T
-    exotics_tt_html = ""
-    avail_races = full_df['race_no'].unique()
-    if all(r in avail_races for r in [4, 5, 6]):
-        tt_legs = []
-        for r in [4, 5, 6]:
-            rdf = full_df[full_df['race_no'] == r].sort_values('model_prob', ascending=False).reset_index(drop=True)
-            tt_legs.append(f"R{r}:[{rdf.loc[0, 'horse_no']}]膽拖{rdf.loc[1:3, 'horse_no'].tolist()}")
-        tt_str = " | ".join(tt_legs)
-        print(f"👑 三 T (R4-R6): {tt_str} (共 27 注 / $270)")
-        exotics_tt_html += f"""
-        <div style="margin-bottom: 8px; font-size: 12px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 5px;">
-            <span style="background: #047857; color: white; padding: 1px 5px; border-radius: 4px; font-size: 10px;">三 T (R4-R5-R6)</span>
-            <div style="color: #a7f3d0; font-family: monospace; font-size: 12px; margin: 3px 0;">{tt_str}</div>
-            <div style="color: #9ca3af; font-size: 11px;">注數: 27 注 ($270) | 每關 1 膽拖 3 腳</div>
-        </div>"""
-
-    if all(r in avail_races for r in [4, 5]):
-        dt_legs = []
-        for r in [4, 5]:
-            rdf = full_df[full_df['race_no'] == r].sort_values('model_prob', ascending=False).reset_index(drop=True)
-            dt_legs.append(f"R{r}:[{rdf.loc[0, 'horse_no']}]膽拖{rdf.loc[1:4, 'horse_no'].tolist()}")
-        dt_str = " | ".join(dt_legs)
-        print(f"👑 孖 T (R4-R5): {dt_str} (共 36 注 / $360)")
-        exotics_tt_html += f"""
-        <div style="font-size: 12px;">
-            <span style="background: #047857; color: white; padding: 1px 5px; border-radius: 4px; font-size: 10px;">孖 T (R4-R5)</span>
-            <div style="color: #a7f3d0; font-family: monospace; font-size: 12px; margin: 3px 0;">{dt_str}</div>
-            <div style="color: #9ca3af; font-size: 11px;">注數: 36 注 ($360) | 雙關高把握組合</div>
-        </div>"""
-
-    # 3. 六寶獎 (R5-R10)
-    exotics_six_html = ""
-    if all(r in avail_races for r in range(5, 11)):
-        six_picks = [f"R{r}:({full_df[full_df['race_no'] == r].sort_values('model_prob', ascending=False).iloc[0]['horse_no']})" for r in range(5, 11)]
-        six_str = " - ".join(six_picks)
-        print(f"⚡ 六寶獎 (R5-R10): {six_str} (單選穿透 / $10)")
-        exotics_six_html = f"""
-        <div style="font-size: 12px;">
-            <span style="background: #7e22ce; color: white; padding: 1px 5px; border-radius: 4px; font-size: 10px;">R5 ~ R10</span>
-            <div style="color: #e9d5ff; font-family: monospace; font-size: 12px; margin: 3px 0;">{six_str}</div>
-            <div style="color: #9ca3af; font-size: 11px;">總注數: 1 注 ($10) | 純單選穿透路徑</div>
-        </div>"""
-    print("=" * 84 + "\n")
-
-    # 組裝大彩池卡片 HTML
-    exotics_box = f"""
-    <div style="margin-bottom: 25px; background: linear-gradient(135deg, #1c1917 0%, #291e10 100%); border: 1px solid #f59e0b; border-radius: 12px; padding: 18px; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.15);">
-        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(245, 158, 11, 0.3); padding-bottom: 10px; margin-bottom: 12px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 20px;">🎰</span>
-                <span style="font-size: 16px; font-weight: bold; color: #fbbf24;">非對稱大彩池量化推薦 (Exotic Pools)</span>
-            </div>
-            <span style="font-size: 11px; background: #78350f; color: #fde68a; padding: 2px 8px; border-radius: 10px;">Henery 剪枝模型</span>
-        </div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
-            <div style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 12px; border-left: 3px solid #3b82f6;">
-                <div style="color: #60a5fa; font-weight: bold; font-size: 13px; margin-bottom: 6px;">🎯 精選四重彩 / 四連環剪枝</div>
-                {exotics_f4_html}
-            </div>
-            <div style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 12px; border-left: 3px solid #10b981;">
-                <div style="color: #34d399; font-weight: bold; font-size: 13px; margin-bottom: 6px;">👑 孖 T / 三 T 膽拖</div>
-                {exotics_tt_html}
-            </div>
-            <div style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 12px; border-left: 3px solid #a855f7;">
-                <div style="color: #c084fc; font-weight: bold; font-size: 13px; margin-bottom: 6px;">⚡ 六寶獎 (Six-Up) 穿透路徑</div>
-                {exotics_six_html}
-            </div>
-        </div>
-    </div>
-    """
-
-    # 安全注入 public/index.html (原子寫入防死鎖)
-        import os, tempfile
-        html_path = os.path.abspath("public/index.html")
-        if os.path.exists(html_path):
-            with open(html_path, "r", encoding="utf-8", errors="ignore") as f_in:
-                html_data = f_in.read()
-            banner_box = build_race_meta_banner()
-            if "香港賽馬量化實戰監控" not in html_data:
-                html_data = html_data.replace('<div class="container">', '<div class="container">' + chr(10) + banner_box)
-                # 無條件覆寫 public/index.html (清理殘留區塊並注入最新卡片)
-    
-    print("✨ [SUCCESS] 全部量化策略與大彩池運算順利完成！\n")
-
-
 
 
 if __name__ == '__main__':
