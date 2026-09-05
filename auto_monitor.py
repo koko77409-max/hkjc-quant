@@ -1,4 +1,18 @@
 
+def safe_git_push():
+    import subprocess, time
+    try:
+        subprocess.run(["git", "add", "public/index.html"], check=True, timeout=15)
+        subprocess.run(["git", "commit", "-m", "auto: update real-time odds & predictions"], check=False, timeout=15)
+        res = subprocess.run(["git", "push", "origin", "main"], check=False, timeout=30)
+        if res.returncode == 0:
+            print(" GitHub Pages 已成功同步最新盤口！")
+        else:
+            print(" Git 推送遇阻，將於下個週期重試...")
+    except Exception as e:
+        print(f" Git 同步暫時異常 (略過並保持守護進程運作): {e}")
+
+
 def check_and_update_results(race_date_str, max_races=10, db_path='hkjc_racing.db'):
     """檢測並自動寫入官方已完賽的賽果"""
     import requests, sqlite3
