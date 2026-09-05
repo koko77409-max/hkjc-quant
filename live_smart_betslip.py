@@ -1,4 +1,24 @@
 
+def calculate_quarter_kelly(win_prob, win_odds, bankroll=10000, max_bet_pct=0.03):
+    """
+    1/4 凱利注碼管理 (Quarter-Kelly)
+    - 防範破產風險與極端回撤
+    - 設定單注下注上限為總資金 3%
+    """
+    b = win_odds - 1.0
+    p = win_prob
+    q = 1.0 - p
+    if b <= 0 or p <= 0:
+        return 0
+    full_kelly = (b * p - q) / b
+    if full_kelly <= 0:
+        return 0
+    bet_fraction = min(full_kelly * 0.25, max_bet_pct)
+    # 取整到馬會法定 $10 注碼單位
+    suggested_stake = max(10, int(round(bankroll * bet_fraction / 10.0) * 10))
+    return suggested_stake
+
+
 def get_odds_velocity(conn, race_date, race_no, horse_no, current_odds):
     """計算該馬近期賠率流速 (Steam / Drift)"""
     try:
