@@ -1,3 +1,59 @@
+
+def select_value_portfolio(race_df, top_n_legs=4, min_prob=0.06, min_edge=1.18):
+    """
+    機構級抗風險選馬引擎：
+    1. 剔除退出馬與異常盤口
+    2. 超冷門馬 (>=35倍) 施加 15% 彩池折讓 (Exotic Haircut)
+    3. 配腳強制要求 Edge >= 1.18 安全邊際，抵禦臨場賠率雪崩
+    """
+    if race_df is None or race_df.empty:
+        return None, []
+    
+    clean_df = race_df.copy()
+    if 'status' in clean_df.columns:
+        clean_df = clean_df[~clean_df['status'].astype(str).str.contains('Scratch|退出', na=False)]
+    clean_df = clean_df[(clean_df['odds'] > 1.0) & (clean_df['model_prob'] > 0.01)]
+    if clean_df.empty:
+        return None, []
+        
+    clean_df['safe_edge'] = clean_df.apply(
+        lambda r: r['edge'] * 0.85 if r['odds'] >= 35.0 else r['edge'], axis=1
+    )
+    
+    sorted_prob = clean_df.sort_values('model_prob', ascending=False).reset_index(drop=True)
+    banker = sorted_prob.iloc[0]
+    pool = clean_df[clean_df['horse_no'] != banker['horse_no']].copy()
+    
+    qualified = pool[(pool['model_prob'] >= min_prob) & (pool['safe_edge'] >= min_edge)].sort_values('safe_edge', ascending=False)
+    if len(qualified) >= top_n_legs:
+        selected_legs = qualified.head(top_n_legs)['horse_no'].tolist()
+    else:
+        fallback = pool[(pool['model_prob'] >= min_prob) & (pool['safe_edge'] >= 1.05)].sort_values('safe_edge', ascending=False)
+        combined = list(qualified['horse_no']) + [h for h in fallback['horse_no'] if h not in qualified['horse_no'].values]
+        if len(combined) < top_n_legs:
+            rem = pool.sort_values('safe_edge', ascending=False)
+            combined = combined + [h for h in rem['horse_no'] if h not in combined]
+        selected_legs = combined[:top_n_legs]
+        
+    return banker, selected_legs
+
+def build_race_meta_banner(race_date="2026/09/06", venue="沙田 (ST)", track="草地 - A 賽道", weather="大致多雲 / 29°C", condition="好地 (Good)"):
+    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return (
+        '<div style="background: linear-gradient(90deg, #1e293b 0%, #0f172a 100%); border: 1px solid #334155; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">'
+        '<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 15px;">'
+        '<div style="display: flex; align-items: center; gap: 12px;"><span style="font-size: 26px;">🏇</span>'
+        '<div><div style="font-size: 18px; font-weight: bold; color: #f8fafc;">香港賽馬量化實戰監控</div>'
+        f'<div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">賽事日期：<strong style="color: #38bdf8;">{race_date}</strong></div></div></div>'
+        '<div style="display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px;">'
+        f'<div style="background: rgba(30, 41, 59, 0.8); border: 1px solid #475569; border-radius: 8px; padding: 6px 12px;"><span style="color: #94a3b8;">場地：</span><strong style="color: #f1f5f9;">{venue} | {track}</strong></div>'
+        f'<div style="background: rgba(30, 41, 59, 0.8); border: 1px solid #475569; border-radius: 8px; padding: 6px 12px;"><span style="color: #94a3b8;">天氣：</span><strong style="color: #facc15;">☁️ {weather}</strong></div>'
+        f'<div style="background: rgba(30, 41, 59, 0.8); border: 1px solid #475569; border-radius: 8px; padding: 6px 12px;"><span style="color: #94a3b8;">場地狀況：</span><strong style="color: #4ade80;">🌱 {condition}</strong></div>'
+        f'<div style="background: rgba(30, 41, 59, 0.8); border: 1px solid #475569; border-radius: 8px; padding: 6px 12px;"><span style="color: #94a3b8;">更新時間：</span><strong style="color: #38bdf8;">{now_str}</strong></div>'
+        '</div></div></div>'
+    )
+
+
 def select_value_portfolio(race_df, top_n_legs=4, min_prob=0.06, min_edge=1.18):
     if race_df is None or race_df.empty:
         return None, []
@@ -122,6 +178,7 @@ def calculate_and_print_exotics(all_race_dfs):
         print(f"⚡ 六寶獎 (R5-R10): {six_str} (單選穿透 / $10)")
     print("=" * 84)
     return exotics
+
 
 
 
