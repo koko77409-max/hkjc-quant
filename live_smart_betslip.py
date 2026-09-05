@@ -85,8 +85,11 @@ def get_base_runners(date_str: str, venue_code: str):
                     r_no = int(race.get('no', 0))
                     runners_list = []
                     for runner in race.get('runners', []):
-                        raw_no = str(runner.get('no', '')).strip()
-                        clean_no = str(int(raw_no)) if raw_no.isdigit() else raw_no
+                        raw_no = str(runner.get('no') or '').strip()
+                        # 嚴格過濾：若非正選純數字號碼（如後備馬、退出馬），直接跳過不收錄
+                        if not raw_no.isdigit() or int(raw_no) <= 0:
+                            continue
+                        clean_no = str(int(raw_no))
                         runners_list.append({
                             'race_date': date_str,
                             'race_no': r_no,
