@@ -1,4 +1,44 @@
 
+def get_odds_velocity(conn, race_date, race_no, horse_no, current_odds):
+    """計算該馬近期賠率流速 (Steam / Drift)"""
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT win_odds FROM odds_snapshots 
+            WHERE race_date=? AND race_no=? AND horse_no=?
+            ORDER BY recorded_at DESC LIMIT 3
+        """, (race_date, race_no, str(horse_no)))
+        rows = cur.fetchall()
+        if len(rows) >= 2 and rows[1][0] and rows[1][0] > 0:
+            prev_odds = rows[1][0]
+            pct_change = (current_odds - prev_odds) / prev_odds
+            if pct_change <= -0.15:
+                return "🔥 資金急湧"
+            elif pct_change >= 0.20:
+                return "❄️ 資金冷退"
+    except:
+        pass
+    return ""
+
+
+def calculate_henery_qp_probabilities(probs, gamma=0.81):
+    """
+    Henery (1981) 模型計算前二名 (Quinella / QP) 條件機率
+    probs: 各馬勝率 array
+    gamma: 香港賽事校準衰減參數 (~0.81)
+    """
+    n = len(probs)
+    p_adj = np.power(probs, gamma)
+    pair_probs = {}
+    for i in range(n):
+        for j in range(i + 1, n):
+            # i 跑第 1, j 跑第 2 + j 跑第 1, i 跑第 2
+            p_i1_j2 = probs[i] * (p_adj[j] / (np.sum(p_adj) - p_adj[i] + 1e-9))
+            p_j1_i2 = probs[j] * (p_adj[i] / (np.sum(p_adj) - p_adj[j] + 1e-9))
+            pair_probs[(i, j)] = p_i1_j2 + p_j1_i2
+    return pair_probs
+
+
 def fetch_racecard_details(race_date_str, race_no):
     """抓取馬會官方 HTML 排位表，提取體重、體重變化、評分、配備、近績"""
     import requests
