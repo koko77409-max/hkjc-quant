@@ -1,4 +1,51 @@
 
+def archive_final_betslip(target_date, race_no, bets_list, exotics_dict):
+    """將每一場的最終投注組合永久歸檔到 SQLite 與 JSON，便於賽後自動對獎"""
+    import sqlite3, json, os
+    os.makedirs("history_bets", exist_ok=True)
+    
+    # 1. 儲存至 JSON 檔案 (以日期與場次為檔名)
+    filename = f"history_bets/{target_date.replace('/', '')}_R{race_no}.json"
+    record = {
+        "race_date": target_date,
+        "race_no": race_no,
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "standard_bets": bets_list,
+        "exotics": exotics_dict
+    }
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(record, f, ensure_ascii=False, indent=2)
+        
+    # 2. 儲存至 SQLite 資料庫方便日後 SQL 分析回測
+    try:
+        conn = sqlite3.connect("horse_racing.db")
+        c = conn.cursor()
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS final_betslips (
+                race_date TEXT,
+                race_no INTEGER,
+                bet_type TEXT,
+                selection TEXT,
+                stake REAL,
+                edge REAL,
+                recorded_at TEXT,
+                PRIMARY KEY (race_date, race_no, bet_type, selection)
+            )
+        """)
+        now_ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        for b in bets_list:
+            sel_str = ",".join(map(str, b.get('horses', []))) if isinstance(b.get('horses'), list) else str(b.get('horses'))
+            c.execute("""
+                INSERT OR REPLACE INTO final_betslips 
+                (race_date, race_no, bet_type, selection, stake, edge, recorded_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (target_date, race_no, b.get('type'), sel_str, b.get('stake', 10), b.get('edge', 1.0), now_ts))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"⚠️ 歸檔 SQLite 時略過: {e}")
+
+
 def select_value_portfolio(race_df, top_n_legs=4, min_prob=0.06):
     """
     雙維度機構選馬矩陣：
@@ -1093,6 +1140,17 @@ def run_smart_betslip(
     except Exception as err:
         print(f"⚠️ HTML 注入時略過: {err}")
     
+    
+    # 自動保存當天各場注單至 history_bets/ 與 SQLite
+    try:
+        for r_no in sorted(all_race_dfs.keys()):
+            df_r = all_race_dfs[r_no]
+            b_r = [b for b in active_bets if b.get('race_no') == r_no] if 'active_bets' in locals() else []
+            archive_final_betslip(target_date, r_no, b_r, exotics_obj)
+        print("💾 [ARCHIVE] 本輪各場最終注單已安全保存至 SQLite 及 history_bets/！")
+    except Exception as err:
+        print(f"⚠️ 注單自動保存略過: {err}")
+
     print("✨ [SUCCESS] 全部量化策略與大彩池運算順利完成！\n")
 
 
