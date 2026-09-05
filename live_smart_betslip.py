@@ -1,26 +1,49 @@
 
-def select_value_portfolio(race_df, top_n_legs=4, min_prob=0.06):
+def select_value_portfolio(race_df, top_n_legs=4, min_prob=0.06, min_edge=1.18):
     """
-    量化雙維度機構選馬模型：
-    - 膽馬：客觀勝率最高者 (保障穿透率)
-    - 配腳：勝率 >= min_prob 且 Edge 最高的潛在暴利馬 (徹底排除低水熱門)
+    機構級抗風險選馬引擎：
+    1. 剔除退出馬與異常盤口
+    2. 超冷門馬 (>=35倍) 施加 15% 彩池折讓 (Exotic Haircut)，防止位置彩池被壓低
+    3. 配腳強制要求 Edge >= 1.18 安全邊際，抵禦臨場賠率雪崩
     """
     if race_df is None or race_df.empty:
         return None, []
     
-    sorted_prob = race_df.sort_values('model_prob', ascending=False).reset_index(drop=True)
+    clean_df = race_df.copy()
+    
+    # 過濾退出馬與異常數據
+    if 'status' in clean_df.columns:
+        clean_df = clean_df[~clean_df['status'].astype(str).str.contains('Scratch|退出', na=False)]
+    clean_df = clean_df[(clean_df['odds'] > 1.0) & (clean_df['model_prob'] > 0.01)]
+    if clean_df.empty:
+        return None, []
+        
+    # 計算安全折讓 Edge
+    clean_df['safe_edge'] = clean_df.apply(
+        lambda r: r['edge'] * 0.85 if r['odds'] >= 35.0 else r['edge'], axis=1
+    )
+    
+    # 挑選全場最高勝率為核心膽馬
+    sorted_prob = clean_df.sort_values('model_prob', ascending=False).reset_index(drop=True)
     banker = sorted_prob.iloc[0]
     
-    # 配腳池：剔除膽馬，要求勝率達到門檻，按 Edge 降序排列
-    pool = race_df[race_df['horse_no'] != banker['horse_no']].copy()
-    val_legs = pool[pool['model_prob'] >= min_prob].sort_values('edge', ascending=False)
+    # 配腳池：排除膽馬
+    pool = clean_df[clean_df['horse_no'] != banker['horse_no']].copy()
     
-    # 若符合門檻不足，用 Edge 最高者補足
-    if len(val_legs) < top_n_legs:
-        fallback = pool.sort_values('edge', ascending=False)
-        selected_legs = fallback.head(top_n_legs)['horse_no'].tolist()
+    # 優先選取滿足勝率底線且具備安全邊際的價值馬 (safe_edge >= min_edge)
+    qualified = pool[(pool['model_prob'] >= min_prob) & (pool['safe_edge'] >= min_edge)].sort_values('safe_edge', ascending=False)
+    
+    if len(qualified) >= top_n_legs:
+        selected_legs = qualified.head(top_n_legs)['horse_no'].tolist()
     else:
-        selected_legs = val_legs.head(top_n_legs)['horse_no'].tolist()
+        # 次選池：放寬至 safe_edge >= 1.05
+        fallback = pool[(pool['model_prob'] >= min_prob) & (pool['safe_edge'] >= 1.05)].sort_values('safe_edge', ascending=False)
+        combined = list(qualified['horse_no']) + [h for h in fallback['horse_no'] if h not in qualified['horse_no'].values]
+        if len(combined) < top_n_legs:
+            # 依然不足則純以 safe_edge 降序補齊
+            rem = pool.sort_values('safe_edge', ascending=False)
+            combined = combined + [h for h in rem['horse_no'] if h not in combined]
+        selected_legs = combined[:top_n_legs]
         
     return banker, selected_legs
 
