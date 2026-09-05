@@ -1,4 +1,119 @@
 
+def calculate_exotic_pools(all_race_dfs, bankroll=10000):
+    """
+    三大非對稱大彩池量化定價與剪枝模組：
+    1. 四連環 / 四重彩 (Henery-4 剪枝模型)
+    2. 孖 T / 三 T (高勝率單膽 + 價值配腳組合)
+    3. 孖寶 / 六寶獎 (連乘最大 EV 穿透路徑)
+    """
+    exotic_recommendations = {
+        'first4_quartet': [],
+        'double_trio': [],
+        'triple_trio': [],
+        'six_up': []
+    }
+    
+    # --- 模組 1: 單場四連環 / 四重彩 (First 4 / Quartet 剪枝) ---
+    for race_no, df in all_race_dfs.items():
+        if df.empty or len(df) < 6:
+            continue
+        sub = df.sort_values('win_prob', ascending=False).reset_index(drop=True)
+        # 挑選前 5 匹最高勝率馬匹
+        top5 = sub.head(5)
+        top1_prob = top5.loc[0, 'win_prob']
+        
+        # 情境 A: 遇到超強單膽 (勝率 >= 38%) -> 建議四重彩「1 膽拖 4 腳互串」(24 注，以 $10 計 $240)
+        if top1_prob >= 0.38:
+            banker = top5.loc[0, 'horse_no']
+            legs = top5.loc[1:4, 'horse_no'].tolist()
+            exotic_recommendations['first4_quartet'].append({
+                'race_no': race_no,
+                'pool': '四重彩 (Quartet)',
+                'structure': f"{banker} 號膽 拖 " + ",".join(map(str, legs)),
+                'bets_count': 24,
+                'suggested_cost': 240,
+                'edge_reason': f"首選勝率高達 {top1_prob*100:.1f}%，符合非對稱超強單膽形態"
+            })
+        # 情境 B: 均勢賽事 -> 建議四連環「5 匹複式」(5 注，以 $10 計 $50)
+        else:
+            picks = top5['horse_no'].tolist()
+            exotic_recommendations['first4_quartet'].append({
+                'race_no': race_no,
+                'pool': '四連環 (First 4)',
+                'structure': "5 匹複式: " + ",".join(map(str, picks)),
+                'bets_count': 5,
+                'suggested_cost': 50,
+                'edge_reason': "勝率分佈均勻，剪枝後覆蓋 Top 5 核心高價值馬匹"
+            })
+
+    # --- 模組 2: 孖 T (Double Trio) 與 三 T (Triple Trio) ---
+    # 通常三 T 為第 4, 5, 6 場；孖 T 多分佈在第 4-5 場與第 9-10 場
+    tt_races = [4, 5, 6]
+    dt_races = [4, 5]
+    
+    # 評估三 T 膽拖架構 (目標：總注數控制在 24 ~ 48 注之間)
+    if all(r in all_race_dfs and not all_race_dfs[r].empty for r in tt_races):
+        legs_plan = []
+        tt_total_bets = 1
+        for r in tt_races:
+            sub = all_race_dfs[r].sort_values('win_prob', ascending=False).reset_index(drop=True)
+            banker = sub.loc[0, 'horse_no']
+            legs = sub.loc[1:3, 'horse_no'].tolist()  # 1 膽拖 3 腳 (3 注)
+            legs_plan.append(f"R{r}: [{banker}] 膽 拖 {legs}")
+            tt_total_bets *= 3
+            
+        exotic_recommendations['triple_trio'].append({
+            'structure': " | ".join(legs_plan),
+            'bets_count': tt_total_bets,  # 3 * 3 * 3 = 27 注
+            'unit_price': 10,
+            'suggested_cost': tt_total_bets * 10,
+            'note': "每關嚴選 1 匹穩健膽配 3 匹配腳，將 24,000+ 注全複式壓縮至 27 注"
+        })
+
+    # 評估孖 T 膽拖架構
+    if all(r in all_race_dfs and not all_race_dfs[r].empty for r in dt_races):
+        dt_plan = []
+        dt_total_bets = 1
+        for r in dt_races:
+            sub = all_race_dfs[r].sort_values('win_prob', ascending=False).reset_index(drop=True)
+            banker = sub.loc[0, 'horse_no']
+            legs = sub.loc[1:4, 'horse_no'].tolist()  # 1 膽拖 4 腳 (6 注)
+            dt_plan.append(f"R{r}: [{banker}] 膽 拖 {legs}")
+            dt_total_bets *= 6
+            
+        exotic_recommendations['double_trio'].append({
+            'structure': " | ".join(dt_plan),
+            'bets_count': dt_total_bets,  # 6 * 6 = 36 注
+            'unit_price': 10,
+            'suggested_cost': dt_total_bets * 10,
+            'note': "次關雙膽防禦，覆蓋高概率前三名組合"
+        })
+
+    # --- 模組 3: 六寶獎 (Six Up, R5-R10) 穿透路徑 ---
+    six_races = [5, 6, 7, 8, 9, 10]
+    if all(r in all_race_dfs and not all_race_dfs[r].empty for r in six_races):
+        six_picks = []
+        total_six_bets = 1
+        for r in six_races:
+            sub = all_race_dfs[r].sort_values('win_prob', ascending=False).reset_index(drop=True)
+            # 若第一名勝率超過 35% 則作單選，否則雙選 (1 或 2 匹)
+            if sub.loc[0, 'win_prob'] >= 0.35:
+                picks = [str(sub.loc[0, 'horse_no'])]
+            else:
+                picks = [str(sub.loc[0, 'horse_no']), str(sub.loc[1, 'horse_no'])]
+            six_picks.append(f"R{r}:({','.join(picks)})")
+            total_six_bets *= len(picks)
+            
+        exotic_recommendations['six_up'].append({
+            'structure': " - ".join(six_picks),
+            'bets_count': total_six_bets,
+            'suggested_cost': total_six_bets * 10,
+            'note': f"動態單雙選混合結構，共 {total_six_bets} 注，避開全複式盲目膨脹"
+        })
+
+    return exotic_recommendations
+
+
 def apply_single_race_exposure_limit(bets, max_race_stake=350):
     """
     全域風控總閘：單場總注碼不超過 $350 (以 $10,000 本金計算，單場曝險嚴格壓在 3.5% 以內)

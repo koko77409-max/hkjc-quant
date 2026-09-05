@@ -1,3 +1,80 @@
+
+def build_exotics_html_card(exotics_data):
+    """渲染大彩池專區 HTML"""
+    if not exotics_data:
+        return ""
+    
+    html = """
+    <div style="margin-top: 30px; background: #1a1d24; border: 1px solid #ffaa00; border-radius: 12px; padding: 20px;">
+        <h3 style="color: #ffaa00; margin-top: 0; display: flex; align-items: center; gap: 8px;">
+            <span>🎰</span> 非對稱大彩池量化推薦 (Exotic Pools)
+        </h3>
+        <p style="color: #8b949e; font-size: 13px;">利用蒙地卡羅模擬與 Henery 機率剪枝，嚴格控制總注數，專攻長線非對稱高回報組合：</p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 15px; margin-top: 15px;">
+    """
+    
+    # 1. 四連環 / 四重彩
+    if exotics_data.get('first4_quartet'):
+        html += """
+        <div style="background: #24292f; border-radius: 8px; padding: 12px; border-left: 4px solid #3b82f6;">
+            <div style="font-weight: bold; color: #58a6ff; margin-bottom: 8px;">🎯 精選四連環 / 四重彩</div>
+        """
+        for item in exotics_data['first4_quartet'][:3]:
+            html += f"""
+            <div style="font-size: 13px; margin-bottom: 8px; border-bottom: 1px solid #30363d; padding-bottom: 6px;">
+                <span style="background: #1f6feb; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px;">第 {item['race_no']} 場</span>
+                <span style="color: #f0f6fc; font-weight: bold; margin-left: 6px;">{item['pool']}</span><br>
+                <div style="color: #ffea79; font-family: monospace; margin: 3px 0;">{item['structure']}</div>
+                <div style="color: #8b949e; font-size: 11px;">注數: {item['bets_count']} 注 (${item['suggested_cost']}) | {item['edge_reason']}</div>
+            </div>
+            """
+        html += "</div>"
+
+    # 2. 三 T 與 孖 T
+    html += """
+    <div style="background: #24292f; border-radius: 8px; padding: 12px; border-left: 4px solid #10b981;">
+        <div style="font-weight: bold; color: #3fb950; margin-bottom: 8px;">👑 孖 T / 三 T 膽拖剪枝</div>
+    """
+    if exotics_data.get('triple_trio'):
+        tt = exotics_data['triple_trio'][0]
+        html += f"""
+        <div style="font-size: 13px; margin-bottom: 8px; border-bottom: 1px solid #30363d; padding-bottom: 6px;">
+            <span style="background: #238636; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px;">三 T (R4-R5-R6)</span><br>
+            <div style="color: #7ee787; font-family: monospace; margin: 3px 0; font-size: 12px;">{tt['structure']}</div>
+            <div style="color: #8b949e; font-size: 11px;">注數: {tt['bets_count']} 注 (${tt['suggested_cost']}) | {tt['note']}</div>
+        </div>
+        """
+    if exotics_data.get('double_trio'):
+        dt = exotics_data['double_trio'][0]
+        html += f"""
+        <div style="font-size: 13px; margin-bottom: 8px;">
+            <span style="background: #238636; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px;">孖 T (R4-R5)</span><br>
+            <div style="color: #7ee787; font-family: monospace; margin: 3px 0; font-size: 12px;">{dt['structure']}</div>
+            <div style="color: #8b949e; font-size: 11px;">注數: {dt['bets_count']} 注 (${dt['suggested_cost']}) | {dt['note']}</div>
+        </div>
+        """
+    html += "</div>"
+
+    # 3. 六寶獎
+    if exotics_data.get('six_up'):
+        six = exotics_data['six_up'][0]
+        html += f"""
+        <div style="background: #24292f; border-radius: 8px; padding: 12px; border-left: 4px solid #a855f7;">
+            <div style="font-weight: bold; color: #d2a8ff; margin-bottom: 8px;">⚡ 六寶獎 (Six Up, R5-R10)</div>
+            <div style="font-size: 13px; margin-bottom: 8px;">
+                <div style="color: #e2c5ff; font-family: monospace; margin: 3px 0; font-size: 12px;">{six['structure']}</div>
+                <div style="color: #8b949e; font-size: 11px;">總注數: {six['bets_count']} 注 (${six['suggested_cost']}) | {six['note']}</div>
+            </div>
+        </div>
+        """
+        
+    html += """
+        </div>
+    </div>
+    """
+    return html
+
 from datetime import datetime, timezone, timedelta
 import io
 import os
@@ -592,6 +669,7 @@ html_template = f"""<!DOCTYPE html>
         </div>
         {races_html}
     </div>
+    {exotics_html}
 </body>
 </html>
 """
