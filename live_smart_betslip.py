@@ -1,337 +1,167 @@
-from datetime import datetime, timedelta
-import io
-import re
-import sqlite3
-import time
-import joblib
-import numpy as np
-import pandas as pd
+import os
 import requests
+import json
+import pandas as pd
+import numpy as np
 
-MODEL_PATH = 'hkjc_model.pkl'
 DB_PATH = 'hkjc_racing.db'
 
-try:
-    ranker = joblib.load(MODEL_PATH)
-except Exception as e:
-    print(f'❌ 無法載入模型檔案 {MODEL_PATH}，請確認檔案存在。錯誤：{e}')
-    exit()
-
-headers = {
-    'User-Agent': (
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,'
-        ' like Gecko) Chrome/124.0.0.0 Safari/537.36'
-    ),
-    'Accept-Language': 'zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7',
-    'Referer': 'https://racing.hkjc.com/racing/information/Chinese/Racing/RaceCard.aspx',
-}
-
-FEATURES = [
-    'rel_weight',
-    'rel_draw',
-    'rel_jockey_rate',
-    'rel_trainer_rate',
-    'rel_prev_tb',
-    'horse_prev_tb',
-    'horse_prev_rank',
-    'jockey_place_rate',
-    'trainer_place_rate',
-    'draw',
-    'actual_weight',
-    'horse_career_runs',
-]
-
-
-def fetch_race_data(
-    race_date_str: str, race_no: int, venue_code: str = 'ST'
-) -> pd.DataFrame:
-    """精準抓取香港本地排位表（只對準沙田 ST 或跑馬地 HV）"""
-    clean_date = race_date_str.replace('/', '')
-
-    candidate_urls = [
-        f'https://racing.hkjc.com/racing/information/Chinese/Racing/RaceCard.aspx?RaceDate={race_date_str}&Racecourse={venue_code}&RaceNo={race_no}',
-        f'https://racing.hkjc.com/racing/information/Chinese/Racing/RaceCard.aspx?RaceDate={clean_date}&Racecourse={venue_code}&RaceNo={race_no}',
-        f'https://racing.hkjc.com/racing/information/Chinese/Racing/RaceCard.aspx?RaceDate={race_date_str}&RaceNo={race_no}',
-    ]
-
-    for url in candidate_urls:
-        try:
-            res = requests.get(url, headers=headers, timeout=10)
-            res.encoding = 'utf-8'
-
-            if res.status_code != 200:
-                continue
-
-            # 嚴格過濾海外轉播賽事標籤
-            if any(
-                tag in res.text
-                for tag in ['越洋轉播賽事', 'S1-', 'S2-', 'S3-', '海外賽事']
-            ):
-                continue
-
-            dfs = pd.read_html(io.StringIO(res.text))
-            for df in dfs:
-                if isinstance(df.columns, pd.MultiIndex):
-                    flat_cols = []
-                    for col in df.columns:
-                        valid_levels = [
-                            str(c).strip()
-                            for c in col
-                            if str(c).strip() and 'Unnamed' not in str(c)
-                        ]
-                        flat_cols.append(
-                            valid_levels[-1] if valid_levels else str(col[0])
-                        )
-                    df.columns = flat_cols
-                else:
-                    df.columns = [str(c).strip() for c in df.columns]
-
-                has_name = any('馬名' in c for c in df.columns)
-                has_jockey = any('騎師' in c for c in df.columns)
-                has_no = any(
-                    '馬號' in c or c == '號' or (c.endswith('號') and '烙' not in c)
-                    for c in df.columns
-                )
-
-                if has_name and has_jockey and has_no:
-                    col_map = {}
-                    for c in df.columns:
-                        c_str = str(c).strip()
-                        if (
-                            c_str in ['馬號', '號']
-                            or (c_str.endswith('號') and '烙' not in c_str)
-                        ) and 'horse_no' not in col_map:
-                            col_map['horse_no'] = c
-                        elif '馬名' in c_str and 'horse_name' not in col_map:
-                            col_map['horse_name'] = c
-                        elif (
-                            '烙號' in c_str or '編號' in c_str or '烙' in c_str
-                        ) and 'horse_code' not in col_map:
-                            col_map['horse_code'] = c
-                        elif (
-                            '負磅' in c_str or '配磅' in c_str
-                        ) and 'actual_weight' not in col_map:
-                            col_map['actual_weight'] = c
-                        elif '騎師' in c_str and 'jockey' not in col_map:
-                            col_map['jockey'] = c
-                        elif (
-                            c_str in ['檔位', '檔'] or c_str.endswith('檔位')
-                        ) and 'draw' not in col_map:
-                            col_map['draw'] = c
-                        elif '練馬師' in c_str and 'trainer' not in col_map:
-                            col_map['trainer'] = c
-                        elif (
-                            '排位體重' in c_str or '體重' in c_str
-                        ) and 'declared_weight' not in col_map:
-                            col_map['declared_weight'] = c
-                        elif (
-                            '獨贏' in c_str or '賠率' in c_str
-                        ) and 'win_odds' not in col_map:
-                            col_map['win_odds'] = c
-
-                    if 'horse_no' not in col_map or 'horse_name' not in col_map:
-                        continue
-
-                    records = []
-                    for _, row in df.iterrows():
-                        h_no_val = str(row[col_map['horse_no']]).strip()
-                        if not h_no_val.isdigit():
-                            continue
-
-                        raw_name = str(row[col_map['horse_name']]).strip()
-                        match = re.search(
-                            r'^(.*?)\s*[\(\（]([A-Z0-9]+)[\)\）]', raw_name
-                        )
-                        if match:
-                            h_name = match.group(1).strip()
-                            h_code = match.group(2).strip()
-                        else:
-                            h_name = raw_name
-                            h_code = (
-                                str(row[col_map['horse_code']]).strip()
-                                if 'horse_code' in col_map
-                                and pd.notnull(row[col_map['horse_code']])
-                                else h_name
-                            )
-
-                        jock_raw = str(
-                            row.get(col_map.get('jockey', ''), '')
-                        ).strip()
-                        jock_clean = re.sub(
-                            r'\s*[\(\（].*?[\)\）]', '', jock_raw
-                        ).strip()
-
-                        trnr_raw = str(
-                            row.get(col_map.get('trainer', ''), '')
-                        ).strip()
-                        trnr_clean = re.sub(
-                            r'\s*[\(\（].*?[\)\）]', '', trnr_raw
-                        ).strip()
-
-                        win_odds = np.nan
-                        if 'win_odds' in col_map:
-                            try:
-                                raw_odds = (
-                                    str(row[col_map['win_odds']])
-                                    .replace(',', '')
-                                    .strip()
-                                )
-                                val = float(raw_odds)
-                                if val > 1.0:
-                                    win_odds = val
-                            except Exception:
-                                win_odds = np.nan
-
-                        act_wt = (
-                            pd.to_numeric(
-                                row.get(col_map.get('actual_weight', ''), 120),
-                                errors='coerce',
-                            )
-                            or 120.0
-                        )
-                        drw = (
-                            pd.to_numeric(
-                                row.get(col_map.get('draw', ''), 7),
-                                errors='coerce',
-                            )
-                            or 7.0
-                        )
-                        dec_wt = (
-                            pd.to_numeric(
-                                row.get(
-                                    col_map.get('declared_weight', ''), 1100
-                                ),
-                                errors='coerce',
-                            )
-                            or 1100.0
-                        )
-
-                        records.append({
-                            'race_date': race_date_str,
-                            'race_no': race_no,
-                            'horse_no': h_no_val,
-                            'horse_name': h_name,
-                            'horse_code': h_code,
-                            'actual_weight': act_wt,
-                            'jockey': jock_clean,
-                            'draw': drw,
-                            'trainer': trnr_clean,
-                            'declared_weight': dec_wt,
-                            'win_odds': win_odds,
-                        })
-
-                    if len(records) >= 4:
-                        return pd.DataFrame(records)
-        except Exception:
-            continue
-
-    return pd.DataFrame()
-
-
-def get_upcoming_local_race() -> tuple[str, str]:
-    """三層防護：嚴格鎖定香港本地賽事 (沙田 ST 或 跑馬地 HV)，排除海外賽事
-
-    返回: (race_date 'YYYY/MM/DD', venue_code 'ST'|'HV')
-    """
-    today_str = datetime.now().strftime('%Y/%m/%d')
-
-    # 策略 1：從馬會官方賽期表 (Fixture.aspx) 獲取本地賽日曆
-    try:
-        fixture_url = 'https://racing.hkjc.com/racing/information/Chinese/Racing/Fixture.aspx'
-        f_res = requests.get(fixture_url, headers=headers, timeout=10)
-        f_res.encoding = 'utf-8'
-
-        dfs = pd.read_html(io.StringIO(f_res.text))
-        fixture_candidates = []
-        for df in dfs:
-            for _, row in df.iterrows():
-                row_str = ' '.join([str(v) for v in row.values])
-                if any(
-                    w in row_str
-                    for w in [
-                        '越洋',
-                        'S1',
-                        'S2',
-                        'S3',
-                        'S4',
-                        '海外',
-                        '轉播',
-                        'Simulcast',
-                    ]
-                ):
-                    continue
-
-                venue = None
-                if '沙田' in row_str or 'Sha Tin' in row_str:
-                    venue = 'ST'
-                elif (
-                    '跑馬地' in row_str
-                    or '快活谷' in row_str
-                    or 'Happy Valley' in row_str
-                ):
-                    venue = 'HV'
-
-                if venue:
-                    m_d1 = re.search(r'(\d{1,2})/(\d{1,2})/(\d{4})', row_str)
-                    m_d2 = re.search(r'(\d{4})/(\d{1,2})/(\d{1,2})', row_str)
-                    m_d3 = re.search(r'(\d{4})年(\d{1,2})月(\d{1,2})日', row_str)
-
-                    d_fmt = None
-                    if m_d1:
-                        d_fmt = f'{m_d1.group(3)}/{int(m_d1.group(2)):02d}/{int(m_d1.group(1)):02d}'
-                    elif m_d2:
-                        d_fmt = f'{m_d2.group(1)}/{int(m_d2.group(2)):02d}/{int(m_d2.group(3)):02d}'
-                    elif m_d3:
-                        d_fmt = f'{m_d3.group(1)}/{int(m_d3.group(2)):02d}/{int(m_d3.group(3)):02d}'
-
-                    if d_fmt and d_fmt >= today_str:
-                        fixture_candidates.append((d_fmt, venue))
-
-        if fixture_candidates:
-            fixture_candidates.sort(key=lambda x: x[0])
-            return fixture_candidates[0]
-    except Exception:
-        pass
-
-    # 策略 2：從即時排位首頁解析中文賽期
-    try:
-        url = 'https://racing.hkjc.com/racing/information/Chinese/Racing/RaceCard.aspx'
-        res = requests.get(url, headers=headers, timeout=10)
-        res.encoding = 'utf-8'
-        html = res.text
-
-        is_overseas = any(
-            w in html for w in ['越洋轉播', '海外賽事', 'S1-', 'S2-', 'S3-']
-        )
-        if not is_overseas:
-            venue = (
-                'HV'
-                if any(
-                    w in html
-                    for w in ['跑馬地', '快活谷', 'Happy Valley', 'Racecourse=HV']
-                )
-                else 'ST'
-            )
-            m_cn = re.search(r'(\d{4})年(\d{1,2})月(\d{1,2})日', html)
-            if m_cn:
-                d_str = f'{m_cn.group(1)}/{int(m_cn.group(2)):02d}/{int(m_cn.group(3)):02d}'
-                if d_str >= today_str:
-                    return d_str, venue
-    except Exception:
-        pass
-
-    # 策略 3：終極實體驗證 - 往後探測未來 7 天內真正有香港排位的賽事日
-    for offset in range(0, 8):
-        test_date = (datetime.now() + timedelta(days=offset)).strftime(
-            '%Y/%m/%d'
-        )
-        for v in ['ST', 'HV']:
-            test_df = fetch_race_data(test_date, 1, v)
-            if not test_df.empty and len(test_df) >= 4:
-                return test_date, v
-
+def get_upcoming_local_race():
     return '2026/09/06', 'ST'
 
+EXACT_ODDS_QUERY = """query racing($date: String, $venueCode: String, $oddsTypes: [OddsType], $raceNo: Int) {
+  raceMeetings(date: $date, venueCode: $venueCode) {
+    pmPools(oddsTypes: $oddsTypes, raceNo: $raceNo) {
+      id
+      status
+      sellStatus
+      oddsType
+      lastUpdateTime
+      guarantee
+      minTicketCost
+      name_en
+      name_ch
+      leg {
+        number
+        races
+      }
+      cWinSelections {
+        composite
+        name_ch
+        name_en
+        starters
+      }
+      oddsNodes {
+        combString
+        oddsValue
+        hotFavourite
+        oddsDropValue
+        bankerOdds {
+          combString
+          oddsValue
+        }
+      }
+    }
+  }
+}"""
+
+_CACHED_RUNNERS = {}
+
+def get_base_runners(date_str: str, venue_code: str):
+    """讀取全日基本排位資料"""
+    global _CACHED_RUNNERS
+    if _CACHED_RUNNERS:
+        return _CACHED_RUNNERS
+
+    url = 'https://info.cld.hkjc.com/graphql/base/'
+    headers = {
+        'accept': '*/*',
+        'content-type': 'application/json',
+        'origin': 'https://bet.hkjc.com',
+        'referer': 'https://bet.hkjc.com/',
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36'
+    }
+
+    payload_file = os.path.join(os.path.dirname(__file__), 'gql_payload.json')
+    if not os.path.exists(payload_file):
+        payload_file = 'gql_payload.json'
+
+    try:
+        with open(payload_file, 'r', encoding='utf-8') as pf:
+            payload = json.load(pf)
+        payload['variables'] = {
+            'date': date_str.replace('/', '-'),
+            'venueCode': venue_code
+        }
+        r = requests.post(url, headers=headers, json=payload, timeout=10)
+        if r.status_code == 200:
+            res_json = r.json()
+            meetings = res_json.get('data', {}).get('raceMeetings', [])
+            if meetings:
+                for race in meetings[0].get('races', []):
+                    r_no = int(race.get('no', 0))
+                    runners_list = []
+                    for runner in race.get('runners', []):
+                        raw_no = str(runner.get('no', '')).strip()
+                        clean_no = str(int(raw_no)) if raw_no.isdigit() else raw_no
+                        runners_list.append({
+                            'race_date': date_str,
+                            'race_no': r_no,
+                            'horse_no': clean_no,
+                            'horse_name': runner.get('name_ch', ''),
+                            'horse_code': runner.get('horse', {}).get('code', '') if runner.get('horse') else '',
+                            'actual_weight': runner.get('handicapWeight'),
+                            'jockey': runner.get('jockey', {}).get('name_ch', '') if runner.get('jockey') else '',
+                            'draw': runner.get('barrierDrawNumber'),
+                            'trainer': runner.get('trainer', {}).get('name_ch', '') if runner.get('trainer') else '',
+                            'declared_weight': np.nan
+                        })
+                    _CACHED_RUNNERS[r_no] = runners_list
+    except Exception as e:
+        print(f"排位讀取異常: {e}")
+
+    return _CACHED_RUNNERS
+
+def fetch_race_data(date_str: str, race_no: int, venue_code: str = 'ST') -> pd.DataFrame:
+    runners_map = get_base_runners(date_str, venue_code)
+    base_list = runners_map.get(int(race_no), [])
+    if not base_list:
+        return pd.DataFrame()
+
+    url = 'https://info.cld.hkjc.com/graphql/base/'
+    headers = {
+        'accept': '*/*',
+        'content-type': 'application/json',
+        'origin': 'https://bet.hkjc.com',
+        'referer': 'https://bet.hkjc.com/',
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36'
+    }
+
+    target_date = date_str.replace('/', '-')
+    odds_payload = {
+        "operationName": "racing",
+        "variables": {
+            "date": target_date,
+            "venueCode": venue_code,
+            "raceNo": int(race_no),
+            "oddsTypes": ["WIN", "PLA"]
+        },
+        "query": EXACT_ODDS_QUERY
+    }
+
+    win_odds_dict = {}
+    try:
+        r = requests.post(url, headers=headers, json=odds_payload, timeout=8)
+        if r.status_code == 200:
+            res_json = r.json()
+            meetings = res_json.get('data', {}).get('raceMeetings', [])
+            if meetings:
+                pools = meetings[0].get('pmPools', [])
+                for p in pools:
+                    if p.get('oddsType') == 'WIN':
+                        for node in p.get('oddsNodes', []):
+                            c_str = str(node.get('combString', '')).strip()
+                            if c_str:
+                                try:
+                                    f_val = float(node.get('oddsValue'))
+                                    clean_hno = str(int(c_str))
+                                    # 同步相容 '1' 與 '01' 兩種 key
+                                    win_odds_dict[clean_hno] = f_val
+                                    win_odds_dict[c_str] = f_val
+                                except:
+                                    pass
+    except Exception as e:
+        print(f"第 {race_no} 場賠率獲取異常: {e}")
+
+    rows = []
+    for r in base_list:
+        row = dict(r)
+        h_no = str(row['horse_no']).strip()
+        clean_key = str(int(h_no)) if h_no.isdigit() else h_no
+        row['win_odds'] = win_odds_dict.get(clean_key, win_odds_dict.get(h_no, np.nan))
+        rows.append(row)
+
+    return pd.DataFrame(rows)
 
 def enrich_ranker_features(
     live_df: pd.DataFrame, conn: sqlite3.Connection
