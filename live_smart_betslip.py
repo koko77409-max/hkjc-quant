@@ -1043,19 +1043,29 @@ def run_smart_betslip(
     </div>
     """
 
-    # 將大彩池卡片注入 public/index.html
+    # 安全注入 public/index.html (原子寫入防死鎖)
     try:
-        import os
-        if os.path.exists("public/index.html"):
-            with open("public/index.html", "r", encoding="utf-8") as f_in:
+        import os, tempfile
+        html_path = os.path.abspath("public/index.html")
+        if os.path.exists(html_path):
+            with open(html_path, "r", encoding="utf-8", errors="ignore") as f_in:
                 html_data = f_in.read()
             if "非對稱大彩池量化推薦" not in html_data:
                 html_data = html_data.replace('<div class="container">', '<div class="container">\n' + exotics_box)
-                with open("public/index.html", "w", encoding="utf-8") as f_out:
-                    f_out.write(html_data)
+                dir_name = os.path.dirname(html_path)
+                with tempfile.NamedTemporaryFile("w", dir=dir_name, delete=False, encoding="utf-8") as tf:
+                    tf.write(html_data)
+                    tf.flush()
+                    temp_name = tf.name
+                os.replace(temp_name, html_path)
                 print("✅ 成功將大彩池專區注入 public/index.html！")
+            else:
+                print("ℹ️ 大彩池專區已存在於 index.html 中。")
     except Exception as err:
-        print(f"⚠️ HTML 注入大彩池時略過: {err}")
+        print(f"⚠️ HTML 注入時略過: {err}")
+    
+    print("✨ [SUCCESS] 全部量化策略與大彩池運算順利完成！\n")
+
 
 
 
