@@ -2,335 +2,2063 @@
 <html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🏇 香港賽馬量化指南 - 沙田 (ST)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>🏇 香港賽馬量化實戰指南</title>
     <style>
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            background-color: #121212;
-            color: #e0e0e0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-            padding: 10px;
+            background-color: #0b0c10;
+            color: #e0e2ec;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang HK", sans-serif;
+            padding: 12px 10px 48px 10px;
+            -webkit-font-smoothing: antialiased;
         }
-        .container {
-            max-width: 680px;
-            margin: 0 auto;
-        }
-        .header {
-            background: #1e1e1e;
+        .container { max-width: 600px; margin: 0 auto; }
+        
+        .top-header {
+            background: linear-gradient(135deg, #181a20, #14161c);
             padding: 14px 16px;
-            border-radius: 12px;
+            border-radius: 14px;
             border-left: 4px solid #00e676;
+            margin-bottom: 16px;
+            border-top: 1px solid #232732;
+            border-right: 1px solid #232732;
+            border-bottom: 1px solid #232732;
+        }
+        .top-header h1 {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+        .meta-line {
+            font-size: 0.76rem;
+            color: #8b92a5;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .badge-hk { background: #ef4444; color: #fff; padding: 2px 7px; border-radius: 6px; font-weight: 700; font-size: 0.7rem; }
+        .badge-venue { background: #00e676; color: #000; padding: 2px 7px; border-radius: 6px; font-weight: 800; font-size: 0.7rem; }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            font-size: 0.92rem;
+            font-weight: 800;
+            color: #fff;
+            margin: 18px 2px 8px 2px;
+        }
+        .strat-sub {
+            font-size: 0.72rem;
+            color: #8b92a5;
+            margin: -4px 2px 10px 4px;
+        }
+
+        .pending-box {
+            background: #151821;
+            border: 1px solid #232838;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+        }
+        .pending-title { color: #fbbf24; font-weight: 700; font-size: 0.82rem; margin-bottom: 4px; }
+        .pending-desc { color: #8b92a5; font-size: 0.74rem; line-height: 1.4; }
+        .win-bet-item {
+            background: #151821;
+            border: 1px solid #232838;
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .race-tag { background: #2563eb; color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: 800; font-size: 0.72rem; }
+        .win-horse { font-weight: 700; color: #fff; font-size: 0.88rem; margin-left: 6px; }
+        .win-odds { color: #38bdf8; font-size: 0.82rem; font-weight: 700; margin-right: 12px; }
+        .win-stake { color: #00e676; font-size: 0.82rem; font-weight: 800; }
+
+        .ticket-card {
+            background: #151821;
+            border: 1px solid #232838;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            padding: 10px 12px;
+        }
+        .ticket-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px dashed #282e40;
+            gap: 8px;
+        }
+        .race-tag-lg {
+            background: #2563eb;
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .h-chips-wrap { display: flex; flex-wrap: wrap; gap: 4px; }
+        .h-chip {
+            background: #202534;
+            color: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 5px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .ticket-body { display: flex; flex-direction: column; gap: 6px; }
+        .ticket-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.76rem;
+            gap: 6px;
+        }
+        .bet-badge {
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 5px;
+            white-space: nowrap;
+        }
+        .bet-badge.qp { background: #475569; color: #f1f5f9; }
+        .bet-badge.trio { background: #b45309; color: #fef3c7; }
+        .chips-list { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; margin: 0 4px; }
+        .bet-chip {
+            background: #1c2230;
+            color: #38bdf8;
+            border: 1px solid #2d374d;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-family: ui-monospace, Menlo, monospace;
+            font-size: 0.72rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .trio-chip { color: #fbbf24; border-color: #5c441b; }
+        .ticket-price { color: #94a3b8; font-size: 0.72rem; font-weight: 700; white-space: nowrap; }
+
+        .banker-card {
+            background: #1a1625;
+            border: 1px solid #4c2882;
+            border-radius: 12px;
+            padding: 12px 14px;
             margin-bottom: 12px;
         }
-        h1 {
-            font-size: 1.15rem;
-            margin: 0 0 6px 0;
-            color: #ffffff;
-        }
-        .status {
-            font-size: 0.8rem;
-            color: #aaa;
-            line-height: 1.4;
-        }
-        .badge-hk {
-            display: inline-block;
-            background: #d32f2f;
-            color: #fff;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.72rem;
-            font-weight: bold;
-            margin-right: 4px;
-        }
-        .badge-live {
-            display: inline-block;
-            background: #2e7d32;
-            color: #fff;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.72rem;
-            font-weight: bold;
-            margin-right: 4px;
-        }
-        pre {
-            background: #1a1a1a;
-            padding: 12px;
+        .banker-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .banker-badge { background: #9333ea; color: #fff; padding: 2px 6px; border-radius: 5px; font-size: 0.7rem; font-weight: 800; }
+        .banker-horse { font-weight: 800; color: #fff; font-size: 0.9rem; }
+        .banker-prob { color: #00e676; font-size: 0.75rem; font-weight: 700; margin-left: auto; }
+        .banker-legs { font-size: 0.76rem; color: #d8b4fe; margin-bottom: 4px; }
+        .banker-cost { font-size: 0.72rem; color: #94a3b8; }
+
+        .allup-card {
+            background: #151821;
+            border: 1px solid #232838;
             border-radius: 12px;
-            overflow-x: auto;
-            font-family: ui-monospace, Menlo, Consolas, "Courier New", monospace;
-            font-size: 0.75rem;
-            line-height: 1.42;
-            color: #00e676;
-            white-space: pre-wrap;
-            word-break: break-word;
-            border: 1px solid #2a2a2a;
+            padding: 12px;
+            margin-bottom: 16px;
         }
+        .allup-steps { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+        .allup-step {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            background: #1c202c;
+            padding: 6px 10px;
+            border-radius: 8px;
+        }
+        .allup-tag { background: #3b82f6; color: #fff; padding: 1px 6px; border-radius: 4px; font-weight: 800; font-size: 0.7rem; }
+        .allup-horse { font-weight: 700; color: #fff; flex: 1; margin-left: 8px; }
+        .allup-prob { color: #00e676; font-weight: 700; font-size: 0.74rem; }
+        .allup-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: #fbbf24;
+            font-weight: 700;
+            padding-top: 6px;
+            border-top: 1px dashed #282e40;
+        }
+        .allup-stake { color: #94a3b8; font-weight: normal; }
+
+        .nav-scroller {
+            display: flex;
+            overflow-x: auto;
+            gap: 6px;
+            padding: 4px 2px 10px 2px;
+            margin-bottom: 12px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .nav-pill {
+            flex: 0 0 auto;
+            background: #1c202c;
+            color: #00e676;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 0.76rem;
+            padding: 5px 11px;
+            border-radius: 8px;
+            border: 1px solid #293042;
+        }
+
+        .race-table-card {
+            background: #151821;
+            border-radius: 12px;
+            margin-bottom: 14px;
+            border: 1px solid #232838;
+            overflow: hidden;
+        }
+        .race-table-header {
+            background: #1c202c;
+            padding: 9px 12px;
+            font-size: 0.88rem;
+            font-weight: 800;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #282e40;
+        }
+        .race-h-count { font-size: 0.72rem; color: #8b92a5; font-weight: normal; }
+        .table-scroller { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.76rem;
+            white-space: nowrap;
+            text-align: center;
+        }
+        th {
+            background: #11141c;
+            color: #8b92a5;
+            font-weight: 600;
+            padding: 7px 6px;
+            font-size: 0.7rem;
+            border-bottom: 1px solid #232838;
+        }
+        td {
+            padding: 8px 6px;
+            border-bottom: 1px solid #1c202c;
+            color: #cbd5e1;
+        }
+        .rank-badge {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            line-height: 18px;
+            border-radius: 50%;
+            font-weight: 800;
+            font-size: 0.68rem;
+        }
+        .rank-1 { background: #facc15; color: #000; }
+        .rank-2 { background: #94a3b8; color: #000; }
+        .rank-3 { background: #f97316; color: #000; }
+        .rank-other { background: #242a38; color: #64748b; }
+        .td-bold { font-weight: 700; color: #fff; }
+        .td-name { text-align: left; padding-left: 6px; font-weight: 700; }
+        .td-odds { color: #38bdf8; }
+        .td-prob { color: #00e676; font-weight: 800; }
+        .td-edge { color: #f43f5e; font-weight: 700; }
+        .empty-note { font-size: 0.74rem; color: #64748b; padding: 6px 4px; }
+
+        /* 資金異動動態 Badge */
+        .trend-badge {
+            display: inline-block;
+            margin-left: 4px;
+            padding: 1px 4px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .trend-badge.drop { background: #b91c1c; color: #fef2f2; border: 1px solid #ef4444; }
+        .trend-badge.drift { background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
+        <div class="top-header">
             <h1>🏇 香港賽馬量化實戰指南</h1>
-            <div class="status">
-                <span class="badge-hk">香港本地</span> <span class="badge-live">沙田 (ST)</span> 賽事日：<strong>2026/09/06</strong><br>
-                最後刷新時間：2026-09-04 22:14:38 (HKT)
+            <div class="meta-line">
+                <span class="badge-hk">香港本地</span>
+                <span class="badge-venue">沙田 (ST)</span>
+                <span>賽事日：<strong>2026/09/06</strong></span>
+                <span>| 2026-09-05 14:07:57 更新</span>
             </div>
         </div>
-        <pre>🚀 正在抓取香港本地賽事【 2026/09/06 沙田 (ST) 】排位量化分析...
-  ✓ 成功讀取第  1 場排位（共 14 匹馬，前三名單： 1號 雙子美麗, 2號 一路精彩, 3號 錶之無限）
-  ✓ 成功讀取第  2 場排位（共 11 匹馬，前三名單： 1號 駿馬之曲, 2號 極速神影, 3號 一舖掂晒）
-  ✓ 成功讀取第  3 場排位（共 6 匹馬，前三名單： 1號 嘉應高昇, 2號 合夥奔馳, 3號 錶之星河）
-  ✓ 成功讀取第  4 場排位（共 14 匹馬，前三名單： 1號 君達得, 2號 光輝歲月, 3號 神駒馬靈）
-  ✓ 成功讀取第  5 場排位（共 14 匹馬，前三名單： 1號 鼓浪好友, 2號 多威心得, 3號 領駿先鋒）
-  ✓ 成功讀取第  6 場排位（共 14 匹馬，前三名單： 1號 辣得準, 2號 哈羅威, 3號 馬馳登）
-  ✓ 成功讀取第  7 場排位（共 9 匹馬，前三名單： 1號 太陽勇士, 2號 笑傲江湖, 3號 時時歡聲）
-  ✓ 成功讀取第  8 場排位（共 14 匹馬，前三名單： 1號 喜悅歡欣, 2號 八仟好運, 3號 不同世界）
-  ✓ 成功讀取第  9 場排位（共 11 匹馬，前三名單： 1號 一生好彩, 2號 超勁赤兔, 3號 展雄志）
-  ✓ 成功讀取第 10 場排位（共 13 匹馬，前三名單： 1號 威利金箭, 2號 寶進, 3號 天星）
 
-🟡 【狀態】馬會彩池未開售（暫無賠率）：啟動「純體育實力模式」。
-   └ 忠實展示模型純客觀實力，Edge 與 EV 將於開盤後自動鎖定。
+        <div class="section-header">🎯 策略一：+EV 獨贏單注</div>
+        <div class="strat-sub">回測 ROI +2.24% 甜蜜點（勝率 &ge; 25% | Edge &ge; 1.00）</div>
+        
+    <div class="pending-box">
+        <div class="pending-title">⏳ 彩池未開售（暫無賠率）</div>
+        <div class="pending-desc">+EV 獨贏單注需在「賠率 1.5–3.0 且 Edge &ge; 1.00」甜蜜點下注，待週六開盤後自動鎖定。</div>
+    </div>
+    
 
-====================================================================================
-       📋 【 2026/09/06 沙田 (ST) 】各場賽事馬匹勝率由高至低完整排行榜
-====================================================================================
+        <div class="section-header">🛡️ 策略三：超級穩膽（單膽連贏 Q / QP）</div>
+        
+    <div class="banker-card">
+        <div class="banker-header">
+            <span class="race-tag-lg">第 3 場</span>
+            <span class="banker-badge">超強單膽</span>
+            <span class="banker-horse">1號 嘉應高昇</span>
+            <span class="banker-prob">勝率 37.8%</span>
+        </div>
+        <div class="banker-legs">拖腳：<strong>3號 錶之星河 + 2號 合夥奔馳</strong></div>
+        <div class="banker-cost">Q 及 QP 各買 2 注 (每注 $20，共 $80)</div>
+    </div>
+    
 
-🏇【 第 1 場 】（共 14 匹馬）
-------------------------------------------------------------------------------------
-預測名次     馬號     馬名         檔位     騎師       賠率       模型勝率       市場勝率       優勢 Edge 
-------------------------------------------------------------------------------------
-  第  1 名   4      新力驕        7      潘頓       未開盤       16.2%       --         --    
-  第  2 名   2      一路精彩       1      何澤堯      未開盤       11.1%       --         --    
-  第  3 名   7      嘉嘉友福       2      布文       未開盤        9.4%       --         --    
-  第  4 名   13     同有運        5      袁幸堯      未開盤        8.2%       --         --    
-  第  5 名   5      旭能精英       8      田泰安      未開盤        7.2%       --         --    
-  第  6 名   11     怡昌奇兵       3      巴度       未開盤        6.1%       --         --    
-  第  7 名   12     五福星        4      梁家俊      未開盤        6.0%       --         --    
-  第  8 名   1      雙子美麗       9      鍾易禮      未開盤        5.6%       --         --    
-  第  9 名   9      摘星聲升       6      奧爾民      未開盤        5.5%       --         --    
-  第 10 名   14     神燦金剛       11     楊明綸      未開盤        5.3%       --         --    
-  第 11 名   6      朗日雪峰       12     黃智弘      未開盤        5.2%       --         --    
-  第 12 名   8      高感         10     艾道拿      未開盤        5.1%       --         --    
-  第 13 名   3      錶之無限       14     黃寶妮      未開盤        4.6%       --         --    
-  第 14 名   10     花香月明       13     霍宏聲      未開盤        4.5%       --         --    
+        <div class="section-header">🚀 策略四：穩健位置過關（3 串 4）</div>
+        
+    <div class="allup-card">
+        <div class="allup-steps">
+        <div class="allup-step">
+            <span class="allup-tag">R3</span>
+            <span class="allup-horse">1號 嘉應高昇</span>
+            <span class="allup-prob">勝率 37.8%</span>
+        </div>
+        
+        <div class="allup-step">
+            <span class="allup-tag">R7</span>
+            <span class="allup-horse">3號 時時歡聲</span>
+            <span class="allup-prob">勝率 24.6%</span>
+        </div>
+        
+        <div class="allup-step">
+            <span class="allup-tag">R2</span>
+            <span class="allup-horse">1號 駿馬之曲</span>
+            <span class="allup-prob">勝率 19.1%</span>
+        </div>
+        </div>
+        <div class="allup-summary">
+            <span>3 串 4 位置 (PLACE)</span>
+            <span class="allup-stake">建議每注 $50 (總成本 $200)</span>
+        </div>
+    </div>
+    
 
-🏇【 第 2 場 】（共 11 匹馬）
-------------------------------------------------------------------------------------
-預測名次     馬號     馬名         檔位     騎師       賠率       模型勝率       市場勝率       優勢 Edge 
-------------------------------------------------------------------------------------
-  第  1 名   1      駿馬之曲       2      潘頓       未開盤       19.1%       --         --    
-  第  2 名   2      極速神影       5      袁幸堯      未開盤       12.2%       --         --    
-  第  3 名   3      一舖掂晒       8      田泰安      未開盤        8.9%       --         --    
-  第  4 名   11     共創歡欣       4      班德禮      未開盤        8.5%       --         --    
-  第  5 名   10     燊輝之星       7      鍾易禮      未開盤        8.2%       --         --    
-  第  6 名   7      銀刺勇士       6      黃智弘      未開盤        8.0%       --         --    
-  第  7 名   8      紅海旺        1      黃寶妮      未開盤        8.0%       --         --    
-  第  8 名   5      團結巴打       3      楊明綸      未開盤        7.5%       --         --    
-  第  9 名   6      馬寶寶        9      奧爾民      未開盤        6.7%       --         --    
-  第 10 名   4      日出東方       10     梁家俊      未開盤        6.5%       --         --    
-  第 11 名   9      雷神太保       11     艾道拿      未開盤        6.2%       --         --    
+        <div class="section-header">⚡ 策略二：每場 Top 3 互串（QP + 單 T）</div>
+        <div class="strat-sub">QP 互串命中率 36.2%（每 2.8 場中 1 次）</div>
+        
+    <div class="ticket-card">
+        <div class="ticket-header">
+            <span class="race-tag-lg">第 1 場</span>
+            <div class="h-chips-wrap"><span class="h-chip">4號 新力驕</span><span class="h-chip">2號 一路精彩</span><span class="h-chip">7號 嘉嘉友福</span></div>
+        </div>
+        <div class="ticket-body">
+            <div class="ticket-row">
+                <span class="bet-badge qp">位置 Q</span>
+                <div class="chips-list"><span class="bet-chip">4-2</span><span class="bet-chip">4-7</span><span class="bet-chip">2-7</span></div>
+                <span class="ticket-price">3注 $30</span>
+            </div>
+            <div class="ticket-row">
+                <span class="bet-badge trio">單 T</span>
+                <div class="chips-list"><span class="bet-chip trio-chip">4+2+7</span></div>
+                <span class="ticket-price">1注 $10</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="ticket-card">
+        <div class="ticket-header">
+            <span class="race-tag-lg">第 2 場</span>
+            <div class="h-chips-wrap"><span class="h-chip">1號 駿馬之曲</span><span class="h-chip">2號 極速神影</span><span class="h-chip">3號 一舖掂晒</span></div>
+        </div>
+        <div class="ticket-body">
+            <div class="ticket-row">
+                <span class="bet-badge qp">位置 Q</span>
+                <div class="chips-list"><span class="bet-chip">1-2</span><span class="bet-chip">1-3</span><span class="bet-chip">2-3</span></div>
+                <span class="ticket-price">3注 $30</span>
+            </div>
+            <div class="ticket-row">
+                <span class="bet-badge trio">單 T</span>
+                <div class="chips-list"><span class="bet-chip trio-chip">1+2+3</span></div>
+                <span class="ticket-price">1注 $10</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="ticket-card">
+        <div class="ticket-header">
+            <span class="race-tag-lg">第 3 場</span>
+            <div class="h-chips-wrap"><span class="h-chip">1號 嘉應高昇</span><span class="h-chip">3號 錶之星河</span><span class="h-chip">2號 合夥奔馳</span></div>
+        </div>
+        <div class="ticket-body">
+            <div class="ticket-row">
+                <span class="bet-badge qp">位置 Q</span>
+                <div class="chips-list"><span class="bet-chip">1-3</span><span class="bet-chip">1-2</span><span class="bet-chip">3-2</span></div>
+                <span class="ticket-price">3注 $30</span>
+            </div>
+            <div class="ticket-row">
+                <span class="bet-badge trio">單 T</span>
+                <div class="chips-list"><span class="bet-chip trio-chip">1+3+2</span></div>
+                <span class="ticket-price">1注 $10</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="ticket-card">
+        <div class="ticket-header">
+            <span class="race-tag-lg">第 4 場</span>
+            <div class="h-chips-wrap"><span class="h-chip">1號 君達得</span><span class="h-chip">12號 上市魅力</span><span class="h-chip">5號 堅闖</span></div>
+        </div>
+        <div class="ticket-body">
+            <div class="ticket-row">
+                <span class="bet-badge qp">位置 Q</span>
+                <div class="chips-list"><span class="bet-chip">1-12</span><span class="bet-chip">1-5</span><span class="bet-chip">12-5</span></div>
+                <span class="ticket-price">3注 $30</span>
+            </div>
+            <div class="ticket-row">
+                <span class="bet-badge trio">單 T</span>
+                <div class="chips-list"><span class="bet-chip trio-chip">1+12+5</span></div>
+                <span class="ticket-price">1注 $10</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="ticket-card">
+        <div class="ticket-header">
+            <span class="race-tag-lg">第 5 場</span>
+            <div class="h-chips-wrap"><span class="h-chip">12號 花果猴王</span><span class="h-chip">8號 歷勝</span><span class="h-chip">4號 震撼人心</span></div>
+        </div>
+        <div class="ticket-body">
+            <div class="ticket-row">
+                <span class="bet-badge qp">位置 Q</span>
+                <div class="chips-list"><span class="bet-chip">12-8</span><span class="bet-chip">12-4</span><span class="bet-chip">8-4</span></div>
+                <span class="ticket-price">3注 $30</span>
+            </div>
+            <div class="ticket-row">
+                <span class="bet-badge trio">單 T</span>
+                <div class="chips-list"><span class="bet-chip trio-chip">12+8+4</span></div>
+                <span class="ticket-price">1注 $10</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="ticket-card">
+        <div class="ticket-header">
+            <span class="race-tag-lg">第 6 場</span>
+            <div class="h-chips-wrap"><span class="h-chip">3號 馬馳登</span><span class="h-chip">2號 哈羅威</span><span class="h-chip">4號 嘉應駿馬</span></div>
+        </div>
+        <div class="ticket-body">
+            <div class="ticket-row">
+                <span class="bet-badge qp">位置 Q</span>
+                <div class="chips-list"><span class="bet-chip">3-2</span><span class="bet-chip">3-4</span><span class="bet-chip">2-4</span></div>
+                <span class="ticket-price">3注 $30</span>
+            </div>
+            <div class="ticket-row">
+                <span class="bet-badge trio">單 T</span>
+                <div class="chips-list"><span class="bet-chip trio-chip">3+2+4</span></div>
+                <span class="ticket-price">1注 $10</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="ticket-card">
+        <div class="ticket-header">
+            <span class="race-tag-lg">第 7 場</span>
+            <div class="h-chips-wrap"><span class="h-chip">3號 時時歡聲</span><span class="h-chip">2號 笑傲江湖</span><span class="h-chip">4號 韋金主</span></div>
+        </div>
+        <div class="ticket-body">
+            <div class="ticket-row">
+                <span class="bet-badge qp">位置 Q</span>
+                <div class="chips-list"><span class="bet-chip">3-2</span><span class="bet-chip">3-4</span><span class="bet-chip">2-4</span></div>
+                <span class="ticket-price">3注 $30</span>
+            </div>
+            <div class="ticket-row">
+                <span class="bet-badge trio">單 T</span>
+                <div class="chips-list"><span class="bet-chip trio-chip">3+2+4</span></div>
+                <span class="ticket-price">1注 $10</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="ticket-card">
+        <div class="ticket-header">
+            <span class="race-tag-lg">第 8 場</span>
+            <div class="h-chips-wrap"><span class="h-chip">4號 心雄雄</span><span class="h-chip">1號 喜悅歡欣</span><span class="h-chip">2號 八仟好運</span></div>
+        </div>
+        <div class="ticket-body">
+            <div class="ticket-row">
+                <span class="bet-badge qp">位置 Q</span>
+                <div class="chips-list"><span class="bet-chip">4-1</span><span class="bet-chip">4-2</span><span class="bet-chip">1-2</span></div>
+                <span class="ticket-price">3注 $30</span>
+            </div>
+            <div class="ticket-row">
+                <span class="bet-badge trio">單 T</span>
+                <div class="chips-list"><span class="bet-chip trio-chip">4+1+2</span></div>
+                <span class="ticket-price">1注 $10</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="ticket-card">
+        <div class="ticket-header">
+            <span class="race-tag-lg">第 9 場</span>
+            <div class="h-chips-wrap"><span class="h-chip">6號 綫路英雄</span><span class="h-chip">5號 櫻花酒杯</span><span class="h-chip">1號 一生好彩</span></div>
+        </div>
+        <div class="ticket-body">
+            <div class="ticket-row">
+                <span class="bet-badge qp">位置 Q</span>
+                <div class="chips-list"><span class="bet-chip">6-5</span><span class="bet-chip">6-1</span><span class="bet-chip">5-1</span></div>
+                <span class="ticket-price">3注 $30</span>
+            </div>
+            <div class="ticket-row">
+                <span class="bet-badge trio">單 T</span>
+                <div class="chips-list"><span class="bet-chip trio-chip">6+5+1</span></div>
+                <span class="ticket-price">1注 $10</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="ticket-card">
+        <div class="ticket-header">
+            <span class="race-tag-lg">第 10 場</span>
+            <div class="h-chips-wrap"><span class="h-chip">12號 支付之父</span><span class="h-chip">4號 得道猴王</span><span class="h-chip">6號 手機錶勁</span></div>
+        </div>
+        <div class="ticket-body">
+            <div class="ticket-row">
+                <span class="bet-badge qp">位置 Q</span>
+                <div class="chips-list"><span class="bet-chip">12-4</span><span class="bet-chip">12-6</span><span class="bet-chip">4-6</span></div>
+                <span class="ticket-price">3注 $30</span>
+            </div>
+            <div class="ticket-row">
+                <span class="bet-badge trio">單 T</span>
+                <div class="chips-list"><span class="bet-chip trio-chip">12+4+6</span></div>
+                <span class="ticket-price">1注 $10</span>
+            </div>
+        </div>
+    </div>
+    
 
-🏇【 第 3 場 】（共 6 匹馬）
-------------------------------------------------------------------------------------
-預測名次     馬號     馬名         檔位     騎師       賠率       模型勝率       市場勝率       優勢 Edge 
-------------------------------------------------------------------------------------
-  第  1 名   1      嘉應高昇       1      潘頓       未開盤       37.8%       --         --    
-  第  2 名   3      錶之星河       4      田泰安      未開盤       15.3%       --         --    
-  第  3 名   2      合夥奔馳       5      楊明綸      未開盤       12.1%       --         --    
-  第  4 名   6      魔術控制       3      蔡明紹      未開盤       11.9%       --         --    
-  第  5 名   5      幸運有您       2      潘明輝      未開盤       11.5%       --         --    
-  第  6 名   4      好友心得       6      班德禮      未開盤       11.4%       --         --    
-
-🏇【 第 4 場 】（共 14 匹馬）
-------------------------------------------------------------------------------------
-預測名次     馬號     馬名         檔位     騎師       賠率       模型勝率       市場勝率       優勢 Edge 
-------------------------------------------------------------------------------------
-  第  1 名   1      君達得        12     潘頓       未開盤       15.5%       --         --    
-  第  2 名   12     上市魅力       3      田泰安      未開盤        9.7%       --         --    
-  第  3 名   5      堅闖         1      艾道拿      未開盤        7.6%       --         --    
-  第  4 名   10     志醒大將       6      艾兆禮      未開盤        7.4%       --         --    
-  第  5 名   8      連連好運       11     布文       未開盤        7.2%       --         --    
-  第  6 名   2      光輝歲月       2      霍宏聲      未開盤        7.0%       --         --    
-  第  7 名   6      揚威四海       8      何澤堯      未開盤        6.9%       --         --    
-  第  8 名   14     幸運同行       4      潘明輝      未開盤        6.9%       --         --    
-  第  9 名   7      開心三多       7      巴度       未開盤        5.8%       --         --    
-  第 10 名   9      駟跑得        5      梁家俊      未開盤        5.5%       --         --    
-  第 11 名   3      神駒馬靈       14     奧爾民      未開盤        5.4%       --         --    
-  第 12 名   4      我最好        9      鍾易禮      未開盤        5.4%       --         --    
-  第 13 名   13     快樂之友       10     蔡明紹      未開盤        5.3%       --         --    
-  第 14 名   11     知恩圖報       13     楊明綸      未開盤        4.2%       --         --    
-
-🏇【 第 5 場 】（共 14 匹馬）
-------------------------------------------------------------------------------------
-預測名次     馬號     馬名         檔位     騎師       賠率       模型勝率       市場勝率       優勢 Edge 
-------------------------------------------------------------------------------------
-  第  1 名   12     花果猴王       8      潘頓       未開盤       16.3%       --         --    
-  第  2 名   8      歷勝         2      何澤堯      未開盤       10.1%       --         --    
-  第  3 名   4      震撼人心       4      布文       未開盤        9.7%       --         --    
-  第  4 名   1      鼓浪好友       1      田泰安      未開盤        9.6%       --         --    
-  第  5 名   5      明德輝煌       13     袁幸堯      未開盤        7.3%       --         --    
-  第  6 名   14     良駒好友       3      黃寶妮      未開盤        6.2%       --         --    
-  第  7 名   11     焦點         9      艾兆禮      未開盤        5.9%       --         --    
-  第  8 名   6      昇龍戰駒       6      梁家俊      未開盤        5.7%       --         --    
-  第  9 名   7      光年程祥       7      霍宏聲      未開盤        5.6%       --         --    
-  第 10 名   2      多威心得       5      班德禮      未開盤        5.5%       --         --    
-  第 11 名   3      領駿先鋒       10     潘明輝      未開盤        4.9%       --         --    
-  第 12 名   10     同喜         12     希威森      未開盤        4.5%       --         --    
-  第 13 名   13     戀愛狂        11     巴度       未開盤        4.4%       --         --    
-  第 14 名   9      有盈勇士       14     鍾易禮      未開盤        4.3%       --         --    
-
-🏇【 第 6 場 】（共 14 匹馬）
-------------------------------------------------------------------------------------
-預測名次     馬號     馬名         檔位     騎師       賠率       模型勝率       市場勝率       優勢 Edge 
-------------------------------------------------------------------------------------
-  第  1 名   3      馬馳登        2      潘頓       未開盤       15.1%       --         --    
-  第  2 名   2      哈羅威        4      布文       未開盤       10.1%       --         --    
-  第  3 名   4      嘉應駿馬       7      田泰安      未開盤        8.3%       --         --    
-  第  4 名   1      辣得準        13     艾兆禮      未開盤        8.3%       --         --    
-  第  5 名   14     金多囍        3      班德禮      未開盤        7.6%       --         --    
-  第  6 名   5      自力更生       1      奧爾民      未開盤        7.3%       --         --    
-  第  7 名   10     鑽飾閃耀       12     希威森      未開盤        5.9%       --         --    
-  第  8 名   11     金津寶駒       5      黃寶妮      未開盤        5.8%       --         --    
-  第  9 名   12     凱旋王者       9      梁家俊      未開盤        5.6%       --         --    
-  第 10 名   8      開心五月       8      鍾易禮      未開盤        5.4%       --         --    
-  第 11 名   7      老鼠斑        10     黃智弘      未開盤        5.4%       --         --    
-  第 12 名   9      天寶威威       6      楊明綸      未開盤        5.4%       --         --    
-  第 13 名   13     首駿         14     巴度       未開盤        5.2%       --         --    
-  第 14 名   6      火流星        11     潘明輝      未開盤        4.7%       --         --    
-
-🏇【 第 7 場 】（共 9 匹馬）
-------------------------------------------------------------------------------------
-預測名次     馬號     馬名         檔位     騎師       賠率       模型勝率       市場勝率       優勢 Edge 
-------------------------------------------------------------------------------------
-  第  1 名   3      時時歡聲       4      潘頓       未開盤       24.6%       --         --    
-  第  2 名   2      笑傲江湖       1      何澤堯      未開盤       14.4%       --         --    
-  第  3 名   4      韋金主        6      田泰安      未開盤        9.6%       --         --    
-  第  4 名   9      晒冷         5      艾兆禮      未開盤        9.5%       --         --    
-  第  5 名   8      飛鷹翱翔       2      鍾易禮      未開盤        9.5%       --         --    
-  第  6 名   7      樂勝天下       7      潘明輝      未開盤        8.8%       --         --    
-  第  7 名   1      太陽勇士       9      袁幸堯      未開盤        8.3%       --         --    
-  第  8 名   5      勁沙塵        3      巴度       未開盤        8.0%       --         --    
-  第  9 名   6      昇瀧駒        8      蔡明紹      未開盤        7.3%       --         --    
-
-🏇【 第 8 場 】（共 14 匹馬）
-------------------------------------------------------------------------------------
-預測名次     馬號     馬名         檔位     騎師       賠率       模型勝率       市場勝率       優勢 Edge 
-------------------------------------------------------------------------------------
-  第  1 名   4      心雄雄        2      潘頓       未開盤       15.4%       --         --    
-  第  2 名   1      喜悅歡欣       5      布文       未開盤        9.1%       --         --    
-  第  3 名   2      八仟好運       13     艾兆禮      未開盤        8.4%       --         --    
-  第  4 名   13     堅多福        4      巴度       未開盤        7.4%       --         --    
-  第  5 名   3      不同世界       6      田泰安      未開盤        7.4%       --         --    
-  第  6 名   14     加州星皓       3      蔡明紹      未開盤        7.0%       --         --    
-  第  7 名   6      手機錶能       10     何澤堯      未開盤        6.8%       --         --    
-  第  8 名   5      威武年代       12     霍宏聲      未開盤        5.8%       --         --    
-  第  9 名   10     金創福威       1      楊明綸      未開盤        5.8%       --         --    
-  第 10 名   9      金運齊來       7      黃寶妮      未開盤        5.6%       --         --    
-  第 11 名   12     久久為軍       14     鍾易禮      未開盤        5.5%       --         --    
-  第 12 名   11     大勇勝        9      希威森      未開盤        5.5%       --         --    
-  第 13 名   7      錶之翠河       8      梁家俊      未開盤        5.5%       --         --    
-  第 14 名   8      實力加        11     奧爾民      未開盤        4.8%       --         --    
-
-🏇【 第 9 場 】（共 11 匹馬）
-------------------------------------------------------------------------------------
-預測名次     馬號     馬名         檔位     騎師       賠率       模型勝率       市場勝率       優勢 Edge 
-------------------------------------------------------------------------------------
-  第  1 名   6      綫路英雄       10     潘頓       未開盤       18.6%       --         --    
-  第  2 名   5      櫻花酒杯       1      何澤堯      未開盤       13.9%       --         --    
-  第  3 名   1      一生好彩       6      布文       未開盤       10.7%       --         --    
-  第  4 名   4      友瑩仁        2      艾兆禮      未開盤        9.8%       --         --    
-  第  5 名   10     手到快來       3      蔡明紹      未開盤        7.6%       --         --    
-  第  6 名   8      非凡豪傑       4      班德禮      未開盤        7.0%       --         --    
-  第  7 名   2      超勁赤兔       7      潘明輝      未開盤        6.9%       --         --    
-  第  8 名   11     星價         9      黃寶妮      未開盤        6.9%       --         --    
-  第  9 名   9      元朗精英       5      楊明綸      未開盤        6.8%       --         --    
-  第 10 名   7      同樣美麗       8      鍾易禮      未開盤        6.2%       --         --    
-  第 11 名   3      展雄志        11     艾道拿      未開盤        5.7%       --         --    
-
-🏇【 第 10 場 】（共 13 匹馬）
-------------------------------------------------------------------------------------
-預測名次     馬號     馬名         檔位     騎師       賠率       模型勝率       市場勝率       優勢 Edge 
-------------------------------------------------------------------------------------
-  第  1 名   12     支付之父       7      潘頓       未開盤       17.7%       --         --    
-  第  2 名   4      得道猴王       2      布文       未開盤       10.2%       --         --    
-  第  3 名   6      手機錶勁       5      何澤堯      未開盤        9.5%       --         --    
-  第  4 名   8      金金小子       6      艾兆禮      未開盤        7.7%       --         --    
-  第  5 名   1      威利金箭       8      田泰安      未開盤        7.0%       --         --    
-  第  6 名   7      鑽石星空       1      巴度       未開盤        6.9%       --         --    
-  第  7 名   13     捷駿         4      鍾易禮      未開盤        6.8%       --         --    
-  第  8 名   11     千杯不醉       9      希威森      未開盤        6.6%       --         --    
-  第  9 名   9      定風波        3      黃智弘      未開盤        6.5%       --         --    
-  第 10 名   3      天星         10     艾道拿      未開盤        5.9%       --         --    
-  第 11 名   2      寶進         12     梁家俊      未開盤        5.1%       --         --    
-  第 12 名   10     星運少爵       13     班德禮      未開盤        5.1%       --         --    
-  第 13 名   5      快活英雄       11     黃寶妮      未開盤        4.9%       --         --    
-
-====================================================================================
-          🎫 香港本地賽馬實戰指南 (Smart Bet Slip) - 2026/09/06 (沙田 (ST))
-          總本金池: $10,000 | 策略核心: 815 場跨季回測實證模型
-====================================================================================
-
-【 🎯 策略一：+EV 獨贏精選單注 (回測 ROI +2.24% 甜蜜點) 】
-  ⏳ 彩池尚未開售（暫無即時賠率）。
-  └ +EV 獨贏單注需在「賠率 1.5-3.0 且 Edge >= 1.00」甜蜜點下注，待開盤後自動計算。
-
-【 ⚡ 策略二：每場 Top 3 互串（位置 Q 互串 3 注 + 單 T 1 注小博大） 】
-  說明：815 場回測證實 QP 互串命中率達 36.2%（每 2.8 場中 1 次），單 T 具備極佳高賠率槓桿。
-
-第  1 場核心三甲 : 4號 新力驕 + 2號 一路精彩 + 7號 嘉嘉友福
-   ├ 🥈 位置 Q 互串 (QP Box) : [4-2, 4-7, 2-7] (共 3 注，建議每注 $10，共 $30)
-   └ 🥇 單 T (Trio)          : [4+2+7] (共 1 注，建議每注 $10)
-
-第  2 場核心三甲 : 1號 駿馬之曲 + 2號 極速神影 + 3號 一舖掂晒
-   ├ 🥈 位置 Q 互串 (QP Box) : [1-2, 1-3, 2-3] (共 3 注，建議每注 $10，共 $30)
-   └ 🥇 單 T (Trio)          : [1+2+3] (共 1 注，建議每注 $10)
-
-第  3 場核心三甲 : 1號 嘉應高昇 + 3號 錶之星河 + 2號 合夥奔馳
-   ├ 🥈 位置 Q 互串 (QP Box) : [1-3, 1-2, 3-2] (共 3 注，建議每注 $10，共 $30)
-   └ 🥇 單 T (Trio)          : [1+3+2] (共 1 注，建議每注 $10)
-
-第  4 場核心三甲 : 1號 君達得 + 12號 上市魅力 + 5號 堅闖
-   ├ 🥈 位置 Q 互串 (QP Box) : [1-12, 1-5, 12-5] (共 3 注，建議每注 $10，共 $30)
-   └ 🥇 單 T (Trio)          : [1+12+5] (共 1 注，建議每注 $10)
-
-第  5 場核心三甲 : 12號 花果猴王 + 8號 歷勝 + 4號 震撼人心
-   ├ 🥈 位置 Q 互串 (QP Box) : [12-8, 12-4, 8-4] (共 3 注，建議每注 $10，共 $30)
-   └ 🥇 單 T (Trio)          : [12+8+4] (共 1 注，建議每注 $10)
-
-第  6 場核心三甲 : 3號 馬馳登 + 2號 哈羅威 + 4號 嘉應駿馬
-   ├ 🥈 位置 Q 互串 (QP Box) : [3-2, 3-4, 2-4] (共 3 注，建議每注 $10，共 $30)
-   └ 🥇 單 T (Trio)          : [3+2+4] (共 1 注，建議每注 $10)
-
-第  7 場核心三甲 : 3號 時時歡聲 + 2號 笑傲江湖 + 4號 韋金主
-   ├ 🥈 位置 Q 互串 (QP Box) : [3-2, 3-4, 2-4] (共 3 注，建議每注 $10，共 $30)
-   └ 🥇 單 T (Trio)          : [3+2+4] (共 1 注，建議每注 $10)
-
-第  8 場核心三甲 : 4號 心雄雄 + 1號 喜悅歡欣 + 2號 八仟好運
-   ├ 🥈 位置 Q 互串 (QP Box) : [4-1, 4-2, 1-2] (共 3 注，建議每注 $10，共 $30)
-   └ 🥇 單 T (Trio)          : [4+1+2] (共 1 注，建議每注 $10)
-
-第  9 場核心三甲 : 6號 綫路英雄 + 5號 櫻花酒杯 + 1號 一生好彩
-   ├ 🥈 位置 Q 互串 (QP Box) : [6-5, 6-1, 5-1] (共 3 注，建議每注 $10，共 $30)
-   └ 🥇 單 T (Trio)          : [6+5+1] (共 1 注，建議每注 $10)
-
-第 10 場核心三甲 : 12號 支付之父 + 4號 得道猴王 + 6號 手機錶勁
-   ├ 🥈 位置 Q 互串 (QP Box) : [12-4, 12-6, 4-6] (共 3 注，建議每注 $10，共 $30)
-   └ 🥇 單 T (Trio)          : [12+4+6] (共 1 注，建議每注 $10)
-
-【 🛡️ 策略三：超級穩膽場次（Top 1 勝率 >= 28% 單膽連贏 Q / QP） 】
-第  3 場 | 超強單膽: 1號 嘉應高昇 (純勝率: 37.8%)
-   └ 單膽拖腳: 3號 錶之星河 + 2號 合夥奔馳 (Q 及 QP 各買 2 注，每注 $20，共 $80)
-
-【 🚀 策略四：穩健位置過關 (3 串 4 All-up) 】
-關次: 第 3 場 | 1 號 嘉應高昇   (純勝率: 37.8%)
-關次: 第 7 場 | 3 號 時時歡聲   (純勝率: 24.6%)
-關次: 第 2 場 | 1 號 駿馬之曲   (純勝率: 19.1%)
-注數: 3 串 4（3 注 2 關 + 1 注 3 關）位置 (PLACE) | 建議每注 $50 (總成本 $200)
-====================================================================================
-
-</pre>
+        <div class="section-header" style="margin-top:24px;">📋 各場排位勝率完整榜</div>
+        <div class="nav-scroller">
+            <a href="#race-1" class="nav-pill">R1</a><a href="#race-2" class="nav-pill">R2</a><a href="#race-3" class="nav-pill">R3</a><a href="#race-4" class="nav-pill">R4</a><a href="#race-5" class="nav-pill">R5</a><a href="#race-6" class="nav-pill">R6</a><a href="#race-7" class="nav-pill">R7</a><a href="#race-8" class="nav-pill">R8</a><a href="#race-9" class="nav-pill">R9</a><a href="#race-10" class="nav-pill">R10</a>
+        </div>
+        
+    <div class="race-table-card" id="race-1">
+        <div class="race-table-header">
+            <span>🏇 第 1 場</span>
+            <span class="race-h-count">14 匹馬</span>
+        </div>
+        <div class="table-scroller">
+            <table>
+                <thead>
+                    <tr>
+                        <th>名次</th><th>馬號</th><th style="text-align:left;padding-left:8px;">馬名 / 資金動向</th><th>檔位</th><th>騎師</th><th>賠率</th><th>勝率</th><th>Edge</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+            <tr>
+                <td><span class="rank-badge rank-1">1</span></td>
+                <td class="td-bold">4</td>
+                <td class="td-bold td-name">新力驕</td>
+                <td>7</td>
+                <td>潘頓</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">16.2%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-2">2</span></td>
+                <td class="td-bold">2</td>
+                <td class="td-bold td-name">一路精彩</td>
+                <td>1</td>
+                <td>何澤堯</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">11.1%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-3">3</span></td>
+                <td class="td-bold">7</td>
+                <td class="td-bold td-name">嘉嘉友福</td>
+                <td>2</td>
+                <td>布文</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">9.4%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">4</span></td>
+                <td class="td-bold">13</td>
+                <td class="td-bold td-name">同有運</td>
+                <td>5</td>
+                <td>袁幸堯</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">8.2%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">5</span></td>
+                <td class="td-bold">5</td>
+                <td class="td-bold td-name">旭能精英</td>
+                <td>8</td>
+                <td>田泰安</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">7.2%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">6</span></td>
+                <td class="td-bold">11</td>
+                <td class="td-bold td-name">怡昌奇兵</td>
+                <td>3</td>
+                <td>巴度</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">6.1%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">7</span></td>
+                <td class="td-bold">12</td>
+                <td class="td-bold td-name">五福星</td>
+                <td>4</td>
+                <td>梁家俊</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">6.0%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">8</span></td>
+                <td class="td-bold">1</td>
+                <td class="td-bold td-name">雙子美麗</td>
+                <td>9</td>
+                <td>鍾易禮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.6%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">9</span></td>
+                <td class="td-bold">9</td>
+                <td class="td-bold td-name">摘星聲升</td>
+                <td>6</td>
+                <td>奧爾民</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.5%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">10</span></td>
+                <td class="td-bold">14</td>
+                <td class="td-bold td-name">神燦金剛</td>
+                <td>11</td>
+                <td>楊明綸</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.3%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">11</span></td>
+                <td class="td-bold">6</td>
+                <td class="td-bold td-name">朗日雪峰</td>
+                <td>12</td>
+                <td>黃智弘</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.2%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">12</span></td>
+                <td class="td-bold">8</td>
+                <td class="td-bold td-name">高感</td>
+                <td>10</td>
+                <td>艾道拿</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.1%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">13</span></td>
+                <td class="td-bold">3</td>
+                <td class="td-bold td-name">錶之無限</td>
+                <td>14</td>
+                <td>黃寶妮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">4.6%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">14</span></td>
+                <td class="td-bold">10</td>
+                <td class="td-bold td-name">花香月明</td>
+                <td>13</td>
+                <td>霍宏聲</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">4.5%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="race-table-card" id="race-2">
+        <div class="race-table-header">
+            <span>🏇 第 2 場</span>
+            <span class="race-h-count">11 匹馬</span>
+        </div>
+        <div class="table-scroller">
+            <table>
+                <thead>
+                    <tr>
+                        <th>名次</th><th>馬號</th><th style="text-align:left;padding-left:8px;">馬名 / 資金動向</th><th>檔位</th><th>騎師</th><th>賠率</th><th>勝率</th><th>Edge</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+            <tr>
+                <td><span class="rank-badge rank-1">1</span></td>
+                <td class="td-bold">1</td>
+                <td class="td-bold td-name">駿馬之曲</td>
+                <td>2</td>
+                <td>潘頓</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">19.1%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-2">2</span></td>
+                <td class="td-bold">2</td>
+                <td class="td-bold td-name">極速神影</td>
+                <td>5</td>
+                <td>袁幸堯</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">12.2%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-3">3</span></td>
+                <td class="td-bold">3</td>
+                <td class="td-bold td-name">一舖掂晒</td>
+                <td>8</td>
+                <td>田泰安</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">8.9%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">4</span></td>
+                <td class="td-bold">11</td>
+                <td class="td-bold td-name">共創歡欣</td>
+                <td>4</td>
+                <td>班德禮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">8.5%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">5</span></td>
+                <td class="td-bold">10</td>
+                <td class="td-bold td-name">燊輝之星</td>
+                <td>7</td>
+                <td>鍾易禮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">8.2%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">6</span></td>
+                <td class="td-bold">7</td>
+                <td class="td-bold td-name">銀刺勇士</td>
+                <td>6</td>
+                <td>黃智弘</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">8.0%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">7</span></td>
+                <td class="td-bold">8</td>
+                <td class="td-bold td-name">紅海旺</td>
+                <td>1</td>
+                <td>黃寶妮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">8.0%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">8</span></td>
+                <td class="td-bold">5</td>
+                <td class="td-bold td-name">團結巴打</td>
+                <td>3</td>
+                <td>楊明綸</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">7.5%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">9</span></td>
+                <td class="td-bold">6</td>
+                <td class="td-bold td-name">馬寶寶</td>
+                <td>9</td>
+                <td>奧爾民</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">6.7%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">10</span></td>
+                <td class="td-bold">4</td>
+                <td class="td-bold td-name">日出東方</td>
+                <td>10</td>
+                <td>梁家俊</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">6.5%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">11</span></td>
+                <td class="td-bold">9</td>
+                <td class="td-bold td-name">雷神太保</td>
+                <td>11</td>
+                <td>艾道拿</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">6.2%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="race-table-card" id="race-3">
+        <div class="race-table-header">
+            <span>🏇 第 3 場</span>
+            <span class="race-h-count">6 匹馬</span>
+        </div>
+        <div class="table-scroller">
+            <table>
+                <thead>
+                    <tr>
+                        <th>名次</th><th>馬號</th><th style="text-align:left;padding-left:8px;">馬名 / 資金動向</th><th>檔位</th><th>騎師</th><th>賠率</th><th>勝率</th><th>Edge</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+            <tr>
+                <td><span class="rank-badge rank-1">1</span></td>
+                <td class="td-bold">1</td>
+                <td class="td-bold td-name">嘉應高昇</td>
+                <td>1</td>
+                <td>潘頓</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">37.8%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-2">2</span></td>
+                <td class="td-bold">3</td>
+                <td class="td-bold td-name">錶之星河</td>
+                <td>4</td>
+                <td>田泰安</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">15.3%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-3">3</span></td>
+                <td class="td-bold">2</td>
+                <td class="td-bold td-name">合夥奔馳</td>
+                <td>5</td>
+                <td>楊明綸</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">12.1%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">4</span></td>
+                <td class="td-bold">6</td>
+                <td class="td-bold td-name">魔術控制</td>
+                <td>3</td>
+                <td>蔡明紹</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">11.9%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">5</span></td>
+                <td class="td-bold">5</td>
+                <td class="td-bold td-name">幸運有您</td>
+                <td>2</td>
+                <td>潘明輝</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">11.5%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">6</span></td>
+                <td class="td-bold">4</td>
+                <td class="td-bold td-name">好友心得</td>
+                <td>6</td>
+                <td>班德禮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">11.4%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="race-table-card" id="race-4">
+        <div class="race-table-header">
+            <span>🏇 第 4 場</span>
+            <span class="race-h-count">14 匹馬</span>
+        </div>
+        <div class="table-scroller">
+            <table>
+                <thead>
+                    <tr>
+                        <th>名次</th><th>馬號</th><th style="text-align:left;padding-left:8px;">馬名 / 資金動向</th><th>檔位</th><th>騎師</th><th>賠率</th><th>勝率</th><th>Edge</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+            <tr>
+                <td><span class="rank-badge rank-1">1</span></td>
+                <td class="td-bold">1</td>
+                <td class="td-bold td-name">君達得</td>
+                <td>12</td>
+                <td>潘頓</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">15.5%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-2">2</span></td>
+                <td class="td-bold">12</td>
+                <td class="td-bold td-name">上市魅力</td>
+                <td>3</td>
+                <td>田泰安</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">9.7%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-3">3</span></td>
+                <td class="td-bold">5</td>
+                <td class="td-bold td-name">堅闖</td>
+                <td>1</td>
+                <td>艾道拿</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">7.6%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">4</span></td>
+                <td class="td-bold">10</td>
+                <td class="td-bold td-name">志醒大將</td>
+                <td>6</td>
+                <td>艾兆禮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">7.4%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">5</span></td>
+                <td class="td-bold">8</td>
+                <td class="td-bold td-name">連連好運</td>
+                <td>11</td>
+                <td>布文</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">7.2%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">6</span></td>
+                <td class="td-bold">2</td>
+                <td class="td-bold td-name">光輝歲月</td>
+                <td>2</td>
+                <td>霍宏聲</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">7.0%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">7</span></td>
+                <td class="td-bold">6</td>
+                <td class="td-bold td-name">揚威四海</td>
+                <td>8</td>
+                <td>何澤堯</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">6.9%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">8</span></td>
+                <td class="td-bold">14</td>
+                <td class="td-bold td-name">幸運同行</td>
+                <td>4</td>
+                <td>潘明輝</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">6.9%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">9</span></td>
+                <td class="td-bold">7</td>
+                <td class="td-bold td-name">開心三多</td>
+                <td>7</td>
+                <td>巴度</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.8%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">10</span></td>
+                <td class="td-bold">9</td>
+                <td class="td-bold td-name">駟跑得</td>
+                <td>5</td>
+                <td>梁家俊</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.5%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">11</span></td>
+                <td class="td-bold">3</td>
+                <td class="td-bold td-name">神駒馬靈</td>
+                <td>14</td>
+                <td>奧爾民</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.4%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">12</span></td>
+                <td class="td-bold">4</td>
+                <td class="td-bold td-name">我最好</td>
+                <td>9</td>
+                <td>鍾易禮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.4%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">13</span></td>
+                <td class="td-bold">13</td>
+                <td class="td-bold td-name">快樂之友</td>
+                <td>10</td>
+                <td>蔡明紹</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.3%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">14</span></td>
+                <td class="td-bold">11</td>
+                <td class="td-bold td-name">知恩圖報</td>
+                <td>13</td>
+                <td>楊明綸</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">4.2%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="race-table-card" id="race-5">
+        <div class="race-table-header">
+            <span>🏇 第 5 場</span>
+            <span class="race-h-count">14 匹馬</span>
+        </div>
+        <div class="table-scroller">
+            <table>
+                <thead>
+                    <tr>
+                        <th>名次</th><th>馬號</th><th style="text-align:left;padding-left:8px;">馬名 / 資金動向</th><th>檔位</th><th>騎師</th><th>賠率</th><th>勝率</th><th>Edge</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+            <tr>
+                <td><span class="rank-badge rank-1">1</span></td>
+                <td class="td-bold">12</td>
+                <td class="td-bold td-name">花果猴王</td>
+                <td>8</td>
+                <td>潘頓</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">16.3%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-2">2</span></td>
+                <td class="td-bold">8</td>
+                <td class="td-bold td-name">歷勝</td>
+                <td>2</td>
+                <td>何澤堯</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">10.1%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-3">3</span></td>
+                <td class="td-bold">4</td>
+                <td class="td-bold td-name">震撼人心</td>
+                <td>4</td>
+                <td>布文</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">9.7%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">4</span></td>
+                <td class="td-bold">1</td>
+                <td class="td-bold td-name">鼓浪好友</td>
+                <td>1</td>
+                <td>田泰安</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">9.6%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">5</span></td>
+                <td class="td-bold">5</td>
+                <td class="td-bold td-name">明德輝煌</td>
+                <td>13</td>
+                <td>袁幸堯</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">7.3%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">6</span></td>
+                <td class="td-bold">14</td>
+                <td class="td-bold td-name">良駒好友</td>
+                <td>3</td>
+                <td>黃寶妮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">6.2%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">7</span></td>
+                <td class="td-bold">11</td>
+                <td class="td-bold td-name">焦點</td>
+                <td>9</td>
+                <td>艾兆禮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.9%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">8</span></td>
+                <td class="td-bold">6</td>
+                <td class="td-bold td-name">昇龍戰駒</td>
+                <td>6</td>
+                <td>梁家俊</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.7%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">9</span></td>
+                <td class="td-bold">7</td>
+                <td class="td-bold td-name">光年程祥</td>
+                <td>7</td>
+                <td>霍宏聲</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.6%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">10</span></td>
+                <td class="td-bold">2</td>
+                <td class="td-bold td-name">多威心得</td>
+                <td>5</td>
+                <td>班德禮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.5%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">11</span></td>
+                <td class="td-bold">3</td>
+                <td class="td-bold td-name">領駿先鋒</td>
+                <td>10</td>
+                <td>潘明輝</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">4.9%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">12</span></td>
+                <td class="td-bold">10</td>
+                <td class="td-bold td-name">同喜</td>
+                <td>12</td>
+                <td>希威森</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">4.5%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">13</span></td>
+                <td class="td-bold">13</td>
+                <td class="td-bold td-name">戀愛狂</td>
+                <td>11</td>
+                <td>巴度</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">4.4%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">14</span></td>
+                <td class="td-bold">9</td>
+                <td class="td-bold td-name">有盈勇士</td>
+                <td>14</td>
+                <td>鍾易禮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">4.3%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="race-table-card" id="race-6">
+        <div class="race-table-header">
+            <span>🏇 第 6 場</span>
+            <span class="race-h-count">14 匹馬</span>
+        </div>
+        <div class="table-scroller">
+            <table>
+                <thead>
+                    <tr>
+                        <th>名次</th><th>馬號</th><th style="text-align:left;padding-left:8px;">馬名 / 資金動向</th><th>檔位</th><th>騎師</th><th>賠率</th><th>勝率</th><th>Edge</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+            <tr>
+                <td><span class="rank-badge rank-1">1</span></td>
+                <td class="td-bold">3</td>
+                <td class="td-bold td-name">馬馳登</td>
+                <td>2</td>
+                <td>潘頓</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">15.1%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-2">2</span></td>
+                <td class="td-bold">2</td>
+                <td class="td-bold td-name">哈羅威</td>
+                <td>4</td>
+                <td>布文</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">10.1%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-3">3</span></td>
+                <td class="td-bold">4</td>
+                <td class="td-bold td-name">嘉應駿馬</td>
+                <td>7</td>
+                <td>田泰安</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">8.3%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">4</span></td>
+                <td class="td-bold">1</td>
+                <td class="td-bold td-name">辣得準</td>
+                <td>13</td>
+                <td>艾兆禮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">8.3%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">5</span></td>
+                <td class="td-bold">14</td>
+                <td class="td-bold td-name">金多囍</td>
+                <td>3</td>
+                <td>班德禮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">7.6%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">6</span></td>
+                <td class="td-bold">5</td>
+                <td class="td-bold td-name">自力更生</td>
+                <td>1</td>
+                <td>奧爾民</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">7.3%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">7</span></td>
+                <td class="td-bold">10</td>
+                <td class="td-bold td-name">鑽飾閃耀</td>
+                <td>12</td>
+                <td>希威森</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.9%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">8</span></td>
+                <td class="td-bold">11</td>
+                <td class="td-bold td-name">金津寶駒</td>
+                <td>5</td>
+                <td>黃寶妮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.8%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">9</span></td>
+                <td class="td-bold">12</td>
+                <td class="td-bold td-name">凱旋王者</td>
+                <td>9</td>
+                <td>梁家俊</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.6%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">10</span></td>
+                <td class="td-bold">8</td>
+                <td class="td-bold td-name">開心五月</td>
+                <td>8</td>
+                <td>鍾易禮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.4%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">11</span></td>
+                <td class="td-bold">7</td>
+                <td class="td-bold td-name">老鼠斑</td>
+                <td>10</td>
+                <td>黃智弘</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.4%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">12</span></td>
+                <td class="td-bold">9</td>
+                <td class="td-bold td-name">天寶威威</td>
+                <td>6</td>
+                <td>楊明綸</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.4%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">13</span></td>
+                <td class="td-bold">13</td>
+                <td class="td-bold td-name">首駿</td>
+                <td>14</td>
+                <td>巴度</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.2%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">14</span></td>
+                <td class="td-bold">6</td>
+                <td class="td-bold td-name">火流星</td>
+                <td>11</td>
+                <td>潘明輝</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">4.7%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="race-table-card" id="race-7">
+        <div class="race-table-header">
+            <span>🏇 第 7 場</span>
+            <span class="race-h-count">9 匹馬</span>
+        </div>
+        <div class="table-scroller">
+            <table>
+                <thead>
+                    <tr>
+                        <th>名次</th><th>馬號</th><th style="text-align:left;padding-left:8px;">馬名 / 資金動向</th><th>檔位</th><th>騎師</th><th>賠率</th><th>勝率</th><th>Edge</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+            <tr>
+                <td><span class="rank-badge rank-1">1</span></td>
+                <td class="td-bold">3</td>
+                <td class="td-bold td-name">時時歡聲</td>
+                <td>4</td>
+                <td>潘頓</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">24.6%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-2">2</span></td>
+                <td class="td-bold">2</td>
+                <td class="td-bold td-name">笑傲江湖</td>
+                <td>1</td>
+                <td>何澤堯</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">14.4%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-3">3</span></td>
+                <td class="td-bold">4</td>
+                <td class="td-bold td-name">韋金主</td>
+                <td>6</td>
+                <td>田泰安</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">9.6%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">4</span></td>
+                <td class="td-bold">9</td>
+                <td class="td-bold td-name">晒冷</td>
+                <td>5</td>
+                <td>艾兆禮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">9.5%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">5</span></td>
+                <td class="td-bold">8</td>
+                <td class="td-bold td-name">飛鷹翱翔</td>
+                <td>2</td>
+                <td>鍾易禮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">9.5%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">6</span></td>
+                <td class="td-bold">7</td>
+                <td class="td-bold td-name">樂勝天下</td>
+                <td>7</td>
+                <td>潘明輝</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">8.8%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">7</span></td>
+                <td class="td-bold">1</td>
+                <td class="td-bold td-name">太陽勇士</td>
+                <td>9</td>
+                <td>袁幸堯</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">8.3%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">8</span></td>
+                <td class="td-bold">5</td>
+                <td class="td-bold td-name">勁沙塵</td>
+                <td>3</td>
+                <td>巴度</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">8.0%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">9</span></td>
+                <td class="td-bold">6</td>
+                <td class="td-bold td-name">昇瀧駒</td>
+                <td>8</td>
+                <td>蔡明紹</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">7.3%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="race-table-card" id="race-8">
+        <div class="race-table-header">
+            <span>🏇 第 8 場</span>
+            <span class="race-h-count">14 匹馬</span>
+        </div>
+        <div class="table-scroller">
+            <table>
+                <thead>
+                    <tr>
+                        <th>名次</th><th>馬號</th><th style="text-align:left;padding-left:8px;">馬名 / 資金動向</th><th>檔位</th><th>騎師</th><th>賠率</th><th>勝率</th><th>Edge</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+            <tr>
+                <td><span class="rank-badge rank-1">1</span></td>
+                <td class="td-bold">4</td>
+                <td class="td-bold td-name">心雄雄</td>
+                <td>2</td>
+                <td>潘頓</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">15.4%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-2">2</span></td>
+                <td class="td-bold">1</td>
+                <td class="td-bold td-name">喜悅歡欣</td>
+                <td>5</td>
+                <td>布文</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">9.1%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-3">3</span></td>
+                <td class="td-bold">2</td>
+                <td class="td-bold td-name">八仟好運</td>
+                <td>13</td>
+                <td>艾兆禮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">8.4%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">4</span></td>
+                <td class="td-bold">13</td>
+                <td class="td-bold td-name">堅多福</td>
+                <td>4</td>
+                <td>巴度</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">7.4%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">5</span></td>
+                <td class="td-bold">3</td>
+                <td class="td-bold td-name">不同世界</td>
+                <td>6</td>
+                <td>田泰安</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">7.4%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">6</span></td>
+                <td class="td-bold">14</td>
+                <td class="td-bold td-name">加州星皓</td>
+                <td>3</td>
+                <td>蔡明紹</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">7.0%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">7</span></td>
+                <td class="td-bold">6</td>
+                <td class="td-bold td-name">手機錶能</td>
+                <td>10</td>
+                <td>何澤堯</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">6.8%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">8</span></td>
+                <td class="td-bold">5</td>
+                <td class="td-bold td-name">威武年代</td>
+                <td>12</td>
+                <td>霍宏聲</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.8%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">9</span></td>
+                <td class="td-bold">10</td>
+                <td class="td-bold td-name">金創福威</td>
+                <td>1</td>
+                <td>楊明綸</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.8%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">10</span></td>
+                <td class="td-bold">9</td>
+                <td class="td-bold td-name">金運齊來</td>
+                <td>7</td>
+                <td>黃寶妮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.6%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">11</span></td>
+                <td class="td-bold">12</td>
+                <td class="td-bold td-name">久久為軍</td>
+                <td>14</td>
+                <td>鍾易禮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.5%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">12</span></td>
+                <td class="td-bold">11</td>
+                <td class="td-bold td-name">大勇勝</td>
+                <td>9</td>
+                <td>希威森</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.5%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">13</span></td>
+                <td class="td-bold">7</td>
+                <td class="td-bold td-name">錶之翠河</td>
+                <td>8</td>
+                <td>梁家俊</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.5%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">14</span></td>
+                <td class="td-bold">8</td>
+                <td class="td-bold td-name">實力加</td>
+                <td>11</td>
+                <td>奧爾民</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">4.8%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="race-table-card" id="race-9">
+        <div class="race-table-header">
+            <span>🏇 第 9 場</span>
+            <span class="race-h-count">11 匹馬</span>
+        </div>
+        <div class="table-scroller">
+            <table>
+                <thead>
+                    <tr>
+                        <th>名次</th><th>馬號</th><th style="text-align:left;padding-left:8px;">馬名 / 資金動向</th><th>檔位</th><th>騎師</th><th>賠率</th><th>勝率</th><th>Edge</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+            <tr>
+                <td><span class="rank-badge rank-1">1</span></td>
+                <td class="td-bold">6</td>
+                <td class="td-bold td-name">綫路英雄</td>
+                <td>10</td>
+                <td>潘頓</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">18.6%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-2">2</span></td>
+                <td class="td-bold">5</td>
+                <td class="td-bold td-name">櫻花酒杯</td>
+                <td>1</td>
+                <td>何澤堯</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">13.9%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-3">3</span></td>
+                <td class="td-bold">1</td>
+                <td class="td-bold td-name">一生好彩</td>
+                <td>6</td>
+                <td>布文</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">10.7%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">4</span></td>
+                <td class="td-bold">4</td>
+                <td class="td-bold td-name">友瑩仁</td>
+                <td>2</td>
+                <td>艾兆禮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">9.8%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">5</span></td>
+                <td class="td-bold">10</td>
+                <td class="td-bold td-name">手到快來</td>
+                <td>3</td>
+                <td>蔡明紹</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">7.6%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">6</span></td>
+                <td class="td-bold">8</td>
+                <td class="td-bold td-name">非凡豪傑</td>
+                <td>4</td>
+                <td>班德禮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">7.0%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">7</span></td>
+                <td class="td-bold">2</td>
+                <td class="td-bold td-name">超勁赤兔</td>
+                <td>7</td>
+                <td>潘明輝</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">6.9%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">8</span></td>
+                <td class="td-bold">11</td>
+                <td class="td-bold td-name">星價</td>
+                <td>9</td>
+                <td>黃寶妮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">6.9%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">9</span></td>
+                <td class="td-bold">9</td>
+                <td class="td-bold td-name">元朗精英</td>
+                <td>5</td>
+                <td>楊明綸</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">6.8%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">10</span></td>
+                <td class="td-bold">7</td>
+                <td class="td-bold td-name">同樣美麗</td>
+                <td>8</td>
+                <td>鍾易禮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">6.2%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">11</span></td>
+                <td class="td-bold">3</td>
+                <td class="td-bold td-name">展雄志</td>
+                <td>11</td>
+                <td>艾道拿</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.7%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="race-table-card" id="race-10">
+        <div class="race-table-header">
+            <span>🏇 第 10 場</span>
+            <span class="race-h-count">13 匹馬</span>
+        </div>
+        <div class="table-scroller">
+            <table>
+                <thead>
+                    <tr>
+                        <th>名次</th><th>馬號</th><th style="text-align:left;padding-left:8px;">馬名 / 資金動向</th><th>檔位</th><th>騎師</th><th>賠率</th><th>勝率</th><th>Edge</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+            <tr>
+                <td><span class="rank-badge rank-1">1</span></td>
+                <td class="td-bold">12</td>
+                <td class="td-bold td-name">支付之父</td>
+                <td>7</td>
+                <td>潘頓</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">17.7%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-2">2</span></td>
+                <td class="td-bold">4</td>
+                <td class="td-bold td-name">得道猴王</td>
+                <td>2</td>
+                <td>布文</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">10.2%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-3">3</span></td>
+                <td class="td-bold">6</td>
+                <td class="td-bold td-name">手機錶勁</td>
+                <td>5</td>
+                <td>何澤堯</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">9.5%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">4</span></td>
+                <td class="td-bold">8</td>
+                <td class="td-bold td-name">金金小子</td>
+                <td>6</td>
+                <td>艾兆禮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">7.7%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">5</span></td>
+                <td class="td-bold">1</td>
+                <td class="td-bold td-name">威利金箭</td>
+                <td>8</td>
+                <td>田泰安</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">7.0%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">6</span></td>
+                <td class="td-bold">7</td>
+                <td class="td-bold td-name">鑽石星空</td>
+                <td>1</td>
+                <td>巴度</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">6.9%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">7</span></td>
+                <td class="td-bold">13</td>
+                <td class="td-bold td-name">捷駿</td>
+                <td>4</td>
+                <td>鍾易禮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">6.8%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">8</span></td>
+                <td class="td-bold">11</td>
+                <td class="td-bold td-name">千杯不醉</td>
+                <td>9</td>
+                <td>希威森</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">6.6%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">9</span></td>
+                <td class="td-bold">9</td>
+                <td class="td-bold td-name">定風波</td>
+                <td>3</td>
+                <td>黃智弘</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">6.5%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">10</span></td>
+                <td class="td-bold">3</td>
+                <td class="td-bold td-name">天星</td>
+                <td>10</td>
+                <td>艾道拿</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.9%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">11</span></td>
+                <td class="td-bold">2</td>
+                <td class="td-bold td-name">寶進</td>
+                <td>12</td>
+                <td>梁家俊</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.1%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">12</span></td>
+                <td class="td-bold">10</td>
+                <td class="td-bold td-name">星運少爵</td>
+                <td>13</td>
+                <td>班德禮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">5.1%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+            <tr>
+                <td><span class="rank-badge rank-other">13</span></td>
+                <td class="td-bold">5</td>
+                <td class="td-bold td-name">快活英雄</td>
+                <td>11</td>
+                <td>黃寶妮</td>
+                <td class="td-odds">未開盤</td>
+                <td class="td-prob">4.9%</td>
+                <td class="td-edge">--</td>
+            </tr>
+            
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
     </div>
 </body>
 </html>
