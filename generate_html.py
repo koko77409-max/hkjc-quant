@@ -272,6 +272,9 @@ for rm in race_matches:
 html_template = f"""<!DOCTYPE html>
 <html lang="zh-HK">
 <head>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>🏇 香港賽馬量化實戰指南</title>
