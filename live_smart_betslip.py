@@ -112,8 +112,7 @@ def calculate_and_print_exotics(all_race_dfs):
         })
         print(f"⚡ 六寶獎 (R5-R10): {six_str} (單選穿透 / $10)")
         
-    print("="*84 + "
-")
+    print("=" * 84)
     return exotics
 
 
