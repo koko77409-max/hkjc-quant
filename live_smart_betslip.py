@@ -1171,13 +1171,11 @@ def run_smart_betslip(
             # 注入頂部環境資訊卡
             banner_box = build_race_meta_banner()
             if "香港賽馬量化實戰監控" not in html_data:
-                html_data = html_data.replace('<div class="container">', '<div class="container">
-' + banner_box)
+            html_data = html_data.replace("<div class="container">", "<div class="container">" + chr(10) + banner_box)
 
             # 注入大彩池專區
             if "非對稱大彩池量化推薦" not in html_data:
-                html_data = html_data.replace('<div class="container">', '<div class="container">
-' + exotics_box)
+            html_data = html_data.replace("<div class="container">", "<div class="container">" + chr(10) + exotics_box)
 
             # 原子性寫入檔案，防鎖定
             dir_name = os.path.dirname(html_path)
