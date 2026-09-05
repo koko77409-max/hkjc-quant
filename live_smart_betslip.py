@@ -168,6 +168,12 @@ def fetch_race_data(date_str: str, race_no: int, venue_code: str = 'ST') -> pd.D
 
 
 MODEL_PATH = 'hkjc_model.pkl'
+FEATURES = [
+    'rel_weight', 'rel_draw', 'rel_jockey_rate', 'rel_trainer_rate',
+    'rel_prev_tb', 'horse_prev_tb', 'horse_prev_rank', 'jockey_place_rate',
+    'trainer_place_rate', 'draw', 'actual_weight', 'horse_career_runs'
+]
+
 try:
     ranker = joblib.load(MODEL_PATH)
 except Exception as e:
