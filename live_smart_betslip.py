@@ -31,7 +31,7 @@ def calculate_and_print_exotics(all_race_dfs):
     """結合 Edge 排序與剪枝架構的大彩池量化模組"""
     exotics = {'first4_quartet': [], 'triple_trio': [], 'double_trio': [], 'six_up': []}
     
-    print("
+    print("=" * 84)
 " + "="*84)
     print("🎰 【 非對稱大彩池量化推薦 (Exotic Pools - 結合 Edge 價值配腳) 】")
     print("="*84)
