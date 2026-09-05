@@ -212,7 +212,7 @@ def enrich_ranker_features(
             'horse_prev_rank': float(horse_prev_rank),
             'jockey_place_rate': float(jockey_place_rate),
             'trainer_place_rate': float(trainer_place_rate),
-            'draw': float(row['draw']) if pd.notnull(row['draw']) else 7.0,
+            'draw': float(row['draw']) if pd.notnull(row['draw']) and str(row['draw']).strip() != '' else 7.0,
             'actual_weight': (
                 float(row['actual_weight'])
                 if pd.notnull(row['actual_weight'])
