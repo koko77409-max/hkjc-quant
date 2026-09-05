@@ -1064,9 +1064,9 @@ def run_smart_betslip(
         if os.path.exists(html_path):
             with open(html_path, "r", encoding="utf-8", errors="ignore") as f_in:
                 html_data = f_in.read()
-                        banner_box = build_race_meta_banner()
+            banner_box = build_race_meta_banner()
             if "香港賽馬量化實戰監控" not in html_data:
-                html_data = html_data.replace('<div class="container">', '<div class="container">\n' + banner_box)
+                html_data = html_data.replace('<div class="container">', '<div class="container">' + chr(10) + banner_box)
             if "非對稱大彩池量化推薦" not in html_data:
                 html_data = html_data.replace('<div class="container">', '<div class="container">\n' + exotics_box)
                 dir_name = os.path.dirname(html_path)
