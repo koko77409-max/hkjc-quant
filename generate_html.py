@@ -47,7 +47,7 @@ strat1_html = ''
 if '彩池尚未開售' in raw_text or '未開盤' in raw_text:
     strat1_html = """
     <div class="pending-box">
-        <div class="pending-title">⏳ 彩池未開售（暫無賠率）</div>
+        <div class="pending-title">⏳ 盤口掃描中：暫無符合 +EV 甜點單</div>
         <div class="pending-desc">+EV 獨贏單注需在「賠率 1.5–3.0 且 Edge &ge; 1.00」甜蜜點下注，當前場次未達「勝率 ≥ 20% 且 Edge ≥ 1.00」門檻。</div>
     </div>
     """
