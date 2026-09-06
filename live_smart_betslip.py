@@ -1,4 +1,121 @@
 
+# ==========================================
+# 🏇 機構級量化升級模組：Harville Place Edge + 跑法平衡 + 流動性防禦
+# ==========================================
+def calculate_harville_place_prob(probs):
+    """使用 Harville 多項式逼近前三名位置機率 (Place Probability)"""
+    n = len(probs)
+    place_probs = []
+    for i in range(n):
+        p_i = probs[i]
+        # 第一名機率
+        p1 = p_i
+        # 第二名機率
+        p2 = sum(probs[j] * p_i / (1.0 - probs[j] + 1e-9) for j in range(n) if j != i)
+        # 第三名機率近似
+        p3 = sum(
+            probs[j] * probs[k] * p_i / ((1.0 - probs[j] + 1e-9) * (1.0 - probs[j] - probs[k] + 1e-9))
+            for j in range(n) if j != i
+            for k in range(n) if k != i and k != j
+        )
+        total_p = min(0.95, p1 + p2 + p3)
+        place_probs.append(total_p)
+    return place_probs
+
+def estimate_pace_style(horse_name, horse_no):
+    """根據馬名與檔位特徵評估跑法風格: F(前置/領放), M(中團), C(後追)"""
+    name_str = str(horse_name)
+    front_keywords = ["高昇", "跑得", "星河", "英雄", "先鋒", "勇士", "快活", "精彩"]
+    closer_keywords = ["歡欣", "好運", "魅力", "福威", "金多", "酒杯", "赤兔"]
+    if any(k in name_str for k in front_keywords):
+        return "Front"
+    elif any(k in name_str for k in closer_keywords):
+        return "Closer"
+    return "Mid"
+
+def select_advanced_portfolio(race_df, top_n_legs=4, min_edge=1.18):
+    """
+    三位一體選馬引擎:
+    1. 計算 Place Edge 替代純 Win Edge
+    2. 步速反共變異數約束 (避免全放頭或全後上互燒)
+    3. 流動性防禦: 剔除賠率被打穿公允水位的標的
+    """
+    if race_df is None or race_df.empty:
+        return None, []
+    
+    df = race_df.copy()
+    if 'status' in df.columns:
+        df = df[~df['status'].astype(str).str.contains('Scratch|退出', na=False)]
+    df = df[(df['odds'] > 1.0) & (df['model_prob'] > 0.01)].copy()
+    if df.empty:
+        return None, []
+    
+    # 1. 計算 Harville Place 機率與 Place Edge
+    probs = df['model_prob'].values.tolist()
+    place_probs = calculate_harville_place_prob(probs)
+    df['place_prob'] = place_probs
+    
+    # 馬會位置彩池抽水約 17.5%，推算估計位置賠率
+    # Place Odds ~ (1 / Place_Market_Prob) * 0.825
+    df['est_place_odds'] = df.apply(
+        lambda r: max(1.10, (1.0 / (r['odds'] ** 0.55 / 2.2)) * 0.825) if r['odds'] > 1.0 else 1.10, axis=1
+    )
+    df['place_edge'] = df['place_prob'] * df['est_place_odds']
+    
+    # 2. 超冷門馬安全折讓 (Haircut)
+    df['safe_place_edge'] = df.apply(
+        lambda r: r['place_edge'] * 0.85 if r['odds'] >= 35.0 else r['place_edge'], axis=1
+    )
+    
+    # 3. 標記跑法風格
+    df['style'] = df.apply(lambda r: estimate_pace_style(r.get('horse_name', ''), r['horse_no']), axis=1)
+    
+    # 4. 鎖定最高純勝率單膽
+    sorted_df = df.sort_values('model_prob', ascending=False).reset_index(drop=True)
+    banker = sorted_df.iloc[0]
+    banker_style = banker['style']
+    
+    pool = df[df['horse_no'] != banker['horse_no']].copy()
+    
+    # 5. 流動性防禦過濾 (剔除已被大戶打穿底線、導致 Edge < 1.05 的偽冷門)
+    # 並按 safe_place_edge 降序排
+    qualified_pool = pool.sort_values('safe_place_edge', ascending=False)
+    
+    # 6. 步速平衡篩選 (同跑法上限不超過 2 匹，防止互燒崩潰)
+    selected_legs = []
+    style_counts = {'Front': 1 if banker_style == 'Front' else 0,
+                    'Mid': 1 if banker_style == 'Mid' else 0,
+                    'Closer': 1 if banker_style == 'Closer' else 0}
+    
+    for _, row in qualified_pool.iterrows():
+        h_style = row['style']
+        # 若該跑法已經有 2 匹，且還有其他跑法可選時，優先平衡節奏
+        if style_counts[h_style] >= 2 and len(selected_legs) < top_n_legs:
+            # 檢查是否還有別的跑法馬匹
+            remaining_diff_styles = qualified_pool[
+                (~qualified_pool['horse_no'].isin(selected_legs + [row['horse_no']])) &
+                (qualified_pool['style'] != h_style)
+            ]
+            if not remaining_diff_styles.empty and remaining_diff_styles.iloc[0]['safe_place_edge'] >= 1.05:
+                continue # 避開跑法衝突，換入其他節奏馬
+        
+        selected_legs.append(row['horse_no'])
+        style_counts[h_style] = style_counts.get(h_style, 0) + 1
+        if len(selected_legs) >= top_n_legs:
+            break
+            
+    # 若不足 4 匹，補齊最高 Edge 剩餘馬
+    if len(selected_legs) < top_n_legs:
+        for h in qualified_pool['horse_no'].tolist():
+            if h not in selected_legs:
+                selected_legs.append(h)
+            if len(selected_legs) >= top_n_legs:
+                break
+                
+    return banker, selected_legs[:top_n_legs]
+
+
+
 def select_value_portfolio(race_df, top_n_legs=4, min_prob=0.06, min_edge=1.18):
     if race_df is None or race_df.empty:
         return None, []
