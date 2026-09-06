@@ -127,3 +127,13 @@ if __name__ == "__main__":
     print(f"➜ 物理抗阻結論: {res['summary']}")
     print(f"➜ 風格加權係數: 前領 {res['Front']}x | 均速 {res['Mid']}x | 後追 {res['Closer']}x")
     print("=" * 60)
+
+    def get_shatin_wind_bias(self):
+        """相容舊版呼叫別名"""
+        res = self.fetch_racecourse_weather()
+        return {
+            "Front": res["Front"],
+            "Mid": res["Mid"],
+            "Closer": res["Closer"],
+            "desc": res["summary"]
+        }
