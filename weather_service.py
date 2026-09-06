@@ -14,84 +14,116 @@ class WeatherService:
         }
         self.graphql_url = "https://info.cld.hkjc.com/graphql/base/"
 
-    def get_full_track_and_wind(self):
+    def fetch_racecourse_weather(self):
         """
-        同時提取官方 wt_WeatherMeeting (硬度計 2.71) 與直路微觀風速儀讀數
+        調用官方 Weather 原生白名單查詢，取得分段微風速、土壤含水量與陣風數據
         """
         payload = {
-            "operationName": "wt_WeatherMeeting",
-            "variables": {
-                "localSim": "LOCAL",
-                "status": ["DECLARED", "DEFINED", "STARTED", "CLOSED", "ABANDON_PARTIAL", "ABANDON"]
-            },
-            "query": """query wt_WeatherMeeting($localSim: LocalSim, $status: [MeetingStatus!]) {
-  commonMeetings(localSim: $localSim, status: $status) {
-    date
-    venueCode
-    penetrometerReadings {
-      reading
-      readingTime
+            "operationName": "Weather",
+            "variables": {},
+            "query": """query Weather {
+  weather {
+    racecourse
+    sectional {
+      location
+      date
+      time
+      avgCorrectedWindDirection
+      avgCorrectedWindSpeed
+      correctedGustDirection
+      correctedGustSpeed
+      isValid
     }
-    course {
-      chinese
-    }
-    races {
-      go_ch
-      no
+    weatherStation {
+      location
+      avgCorrectedWindDirection
+      avgCorrectedWindSpeed
+      temperature
+      relativeHumidity
+      soilVolumeticWaterContent
+      rainFallPrecipitation10Min
+      isValid
     }
   }
 }"""
         }
         
         info = {
-            "penetrometer": 2.71,
-            "going": "好地至快地",
-            "wind_speed": 2.0,
-            "wind_dir": "東北偏東",
+            "venue": "HV/ST",
+            "avg_wind_speed": 0.0,
+            "wind_direction": "微風",
+            "soil_moisture": 0.0,
+            "rain_10m": 0.0,
             "Front": 1.0,
             "Mid": 1.0,
             "Closer": 1.0,
-            "summary": "數據讀取中"
+            "summary": "環境微感測器運行中"
         }
 
         try:
-            r = self.session.post(self.graphql_url, headers=self.headers, json=payload, timeout=6)
+            r = self.session.post(self.graphql_url, headers=self.headers, json=payload, timeout=8)
             if r.status_code == 200:
                 data = r.json()
-                meetings = data.get("data", {}).get("commonMeetings", [])
-                if meetings:
-                    m = meetings[0]
-                    p_list = m.get("penetrometerReadings", [])
-                    if p_list:
-                        info["penetrometer"] = float(p_list[-1].get("reading", 2.71))
-                    r_list = m.get("races", [])
-                    if r_list:
-                        info["going"] = r_list[0].get("go_ch", "好地至快地")
+                weather_data = data.get("data", {}).get("weather", {})
+                if weather_data:
+                    info["venue"] = weather_data.get("racecourse", "ST")
+                    sec_list = weather_data.get("sectional", [])
+                    station_list = weather_data.get("weatherStation", [])
+                    
+                    # 1. 提取分段風速儀讀數
+                    valid_sections = [s for s in sec_list if s.get("isValid")]
+                    if valid_sections:
+                        # 取直路端點測速
+                        latest_sec = valid_sections[-1]
+                        info["avg_wind_speed"] = float(latest_sec.get("avgCorrectedWindSpeed", 0.0))
+                        info["wind_direction"] = str(latest_sec.get("avgCorrectedWindDirection", "微風"))
+                        
+                    # 2. 提取氣象站土壤體積含水率 (Soil Volumetric Water Content)
+                    valid_stations = [w for w in station_list if w.get("isValid")]
+                    if valid_stations:
+                        st = valid_stations[0]
+                        info["soil_moisture"] = float(st.get("soilVolumeticWaterContent", 0.0))
+                        info["rain_10m"] = float(st.get("rainFallPrecipitation10Min", 0.0))
         except Exception:
             pass
 
-        # 嘗試讀取馬會直路微型風速儀 (當前風速極微 0-3 km/h，影響中性)
-        # 沙田直路硬度 2.71：屬「好地至快地」，輕微利好前領貼欄
-        if info["penetrometer"] <= 2.71:
-            info["Front"] = 1.04
-            info["Closer"] = 0.96
-            info["summary"] = f"草地偏快 (硬度 {info['penetrometer']} | {info['going']})，微風 (東北偏東 2km/h) ⚡ 輕微利好前領"
-        elif info["penetrometer"] >= 2.74:
-            info["Front"] = 0.95
-            info["Closer"] = 1.05
-            info["summary"] = f"草地偏軟 (硬度 {info['penetrometer']} | {info['going']}) 🌧️ 利好後追"
+        # 3. 跑道物理阻力綜合加權計算
+        # 跑馬地（Happy Valley）直路僅 312 米，若無降雨且風阻不大，先天利好前領 (Front 1.05)
+        # 若土壤含水率偏高 (soil_moisture > 30% 或近 10 分鐘降雨 > 0)，外疊後追馬抓地優勢放大
+        if info["venue"] == "HV" or "Valley" in str(info["venue"]):
+            base_front = 1.06
+            base_closer = 0.94
+            venue_name = "跑馬地 (HV)"
         else:
-            info["summary"] = f"草地中性 (硬度 {info['penetrometer']} | {info['going']}) ⚖️ 步速均衡"
+            base_front = 1.03
+            base_closer = 0.97
+            venue_name = "沙田 (ST)"
+
+        if info["soil_moisture"] >= 35.0 or info["rain_10m"] > 0:
+            # 跑道受水變黏，前領破風與抵抗外疊消耗變大
+            info["Front"] = round(base_front * 0.92, 3)
+            info["Closer"] = round(base_closer * 1.10, 3)
+            info["summary"] = f"{venue_name} 草皮偏濕軟 (含水量 {info['soil_moisture']}%) 🌧️ 後追加成"
+        elif info["avg_wind_speed"] >= 15.0:
+            # 強風抗阻
+            info["Front"] = round(base_front * 0.95, 3)
+            info["Closer"] = round(base_closer * 1.06, 3)
+            info["summary"] = f"{venue_name} 直路頂頭風 ({info['avg_wind_speed']} km/h) 🌪️ 逆風利後追"
+        else:
+            info["Front"] = base_front
+            info["Closer"] = base_closer
+            info["summary"] = f"{venue_name} 乾快硬地，風力平穩 ({info['avg_wind_speed']} km/h) ⚡ 利前領貼欄"
 
         return info
 
 if __name__ == "__main__":
     service = WeatherService()
-    res = service.get_full_track_and_wind()
+    res = service.fetch_racecourse_weather()
     print("=" * 60)
-    print("🏇 馬會官方現場環境感測器狀態:")
-    print(f"➜ 度地儀指數 (Penetrometer): {res['penetrometer']}")
-    print(f"➜ 官方場地地度 (Going): {res['going']}")
-    print(f"➜ 綜合物理抗阻總結: {res['summary']}")
-    print(f"➜ 跑法加權偏置: 前領 {res['Front']}x | 均速 {res['Mid']}x | 後追 {res['Closer']}x")
+    print("🏇 馬會官方微氣象與土壤感測器讀數:")
+    print(f"➜ 當前賽場: {res['venue']}")
+    print(f"➜ 分段校正風速: {res['avg_wind_speed']} km/h (方位: {res['wind_direction']})")
+    print(f"➜ 土壤體積含水量: {res['soil_moisture']}% (近10分鐘降雨: {res['rain_10m']} mm)")
+    print(f"➜ 物理抗阻結論: {res['summary']}")
+    print(f"➜ 風格加權係數: 前領 {res['Front']}x | 均速 {res['Mid']}x | 後追 {res['Closer']}x")
     print("=" * 60)
