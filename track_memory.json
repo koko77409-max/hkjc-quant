@@ -1,0 +1,25 @@
+{
+    "target_meeting": "2026-09-09_HV",
+    "course_specs": {
+        "venue": "HV",
+        "home_straight_meters": 312,
+        "tight_turn_penalty": 0.88,
+        "inside_draw_boost": {
+            "draw_1_to_3": 1.15,
+            "draw_4_to_6": 1.02,
+            "draw_7_to_9": 0.92,
+            "draw_10_plus": 0.82
+        }
+    },
+    "strategy_adjustments": {
+        "pace_style_weights": {
+            "Front": 1.12,
+            "Mid": 1.0,
+            "Closer": 0.88
+        },
+        "ticket_rules": {
+            "min_edge_threshold": 1.16,
+            "protect_inside_draw_banker": true
+        }
+    }
+}
