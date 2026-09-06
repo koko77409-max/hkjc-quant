@@ -1,171 +1,104 @@
 # -*- coding: utf-8 -*-
-import json
 import datetime
 import subprocess
-import os
 
-# 1. 讀取記憶庫資料
-memory = {}
-if os.path.exists("track_memory.json"):
-    with open("track_memory.json", "r", encoding="utf-8") as f:
-        memory = json.load(f)
-
-# 2. 準備 2026-09-06 開鑼日全日歷史存檔數據
-historical_meetings = {
-    "2026-09-06_ST": {
-        "title": "2026-09-06 沙田開鑼日賽 (全日 10 場量化策略與實盤回測)",
-        "track_condition": "好地至快地 (度地儀 2.71 / 微風)",
-        "summary": "中冷馬(5-15倍)佔比高達 46.7%，大冷門佔 26.7%，完整驗證 +EV 邊際策略二價值。",
-        "races": [
-            {"race": 1, "target": "13 同有運 (勝 5.7)", "legs": "7 嘉嘉友福(15.0), 2 一路精彩(9.3)", "verdict": "✅ 命中位置 Q 7-2"},
-            {"race": 2, "target": "1 駿馬之曲 (勝 2.3)", "legs": "8 紅海旺(13.0), 11 共創歡欣(11.0)", "verdict": "🎯 雙軌單 T (1+8+11) 及 位置 Q (1-8) 精確全中"},
-            {"race": 3, "target": "1 嘉應高昇 (勝 1.0)", "legs": "2 合夥奔馳(107.0), 6 魔術控制(355.0)", "verdict": "✅ 單膽第一，大冷配腳雙雙入位置"},
-            {"race": 4, "target": "10 志醒大將 (勝 4.0)", "legs": "1 君達得(5.5), 7 開心三多(11.0)", "verdict": "✅ 鎖定核心價值區"},
-            {"race": 5, "target": "7 光年程祥 (勝 2.7)", "legs": "5 明德輝煌(6.3), 12 花果猴王(12.0)", "verdict": "✅ 命中前二熱門包夾"},
-            {"race": 6, "target": "1 辣得準 (勝 6.2)", "legs": "3 馬馳登(4.6), 8 開心五月(20.0)", "verdict": "✅ 配腳大冷 20倍 跑入第三"},
-            {"race": 7, "target": "6 昇瀧駒 (勝 105.0)", "legs": "7 樂勝天下(22.0), 9 晒冷(6.5)", "verdict": "⚠️ 105倍極端冷門頭馬"},
-            {"race": 8, "target": "1 喜悅歡欣 (勝 3.4)", "legs": "2 八仟好運(8.7), 8 實力加(8.8)", "verdict": "🎯 命中 5-15倍核心配腳池"},
-            {"race": 9, "target": "5 櫻花酒杯 (勝 3.1)", "legs": "8 非凡豪傑(7.4), 7 同樣美麗(79.0)", "verdict": "✅ 鎖定三甲走位"},
-            {"race": 10, "target": "2 寶進 (勝 26.0)", "legs": "1 威利金箭(4.6), 10 星運少爵(25.0)", "verdict": "🎯 26倍冷膽成功跑出"}
-        ]
-    }
-}
-
-now = datetime.datetime.now()
-now_str = now.strftime("%Y-%m-%d %H:%M:%S")
-
-# 3. 生成現代化 HTML 儀表板
-html_content = f"""<!DOCTYPE html>
+html_content = '''<!DOCTYPE html>
 <html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HKJC 機構級量化賽馬投注監控儀表板</title>
+    <title>HKJC 機構級量化賽馬決策系統</title>
     <style>
-        :root {{
-            --bg-color: #0d1117;
-            --card-bg: #161b22;
-            --border-color: #30363d;
-            --text-main: #c9d1d9;
-            --text-bright: #ffffff;
-            --accent-green: #2ea043;
-            --accent-blue: #58a6ff;
-            --accent-gold: #f1e05a;
-        }}
-        body {{
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             margin: 0;
-            padding: 20px;
-            line-height: 1.5;
-        }}
-        .container {{
-            max-width: 1100px;
-            margin: 0 auto;
-        }}
-        .header-bar {{
+            padding: 24px;
+        }
+        .container { max-width: 1100px; margin: 0 auto; }
+        .header-box {
+            border-bottom: 2px solid #30363d;
+            padding-bottom: 16px;
+            margin-bottom: 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 15px;
-            margin-bottom: 20px;
             flex-wrap: wrap;
-            gap: 10px;
-        }}
-        .live-tag {{
-            background-color: rgba(46, 160, 67, 0.2);
+            gap: 12px;
+        }
+        .live-tag {
+            background: rgba(46, 160, 67, 0.25);
+            border: 1px solid #3fb950;
             color: #3fb950;
-            border: 1px solid #2ea043;
-            padding: 4px 12px;
+            padding: 8px 16px;
             border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.9em;
+            font-weight: 700;
+            font-size: 1.05em;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-        }}
-        .live-dot {{
-            width: 8px;
-            height: 8px;
-            background-color: #3fb950;
-            border-radius: 50%;
-            display: inline-block;
-            box-shadow: 0 0 8px #3fb950;
-        }}
-        .card {{
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
+            gap: 8px;
+        }
+        .card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 10px;
             padding: 20px;
-            margin-bottom: 20px;
-        }}
-        table {{
+            margin-bottom: 24px;
+        }
+        table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
-        }}
-        th, td {{
+            margin-top: 14px;
+        }
+        th {
             text-align: left;
-            padding: 10px 12px;
-            border-bottom: 1px solid var(--border-color);
-        }}
-        th {{
-            background-color: rgba(255, 255, 255, 0.05);
-            color: var(--text-bright);
-        }}
-        details {{
-            background-color: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 12px 16px;
-            margin-bottom: 15px;
-        }}
-        summary {{
+            padding: 12px;
+            border-bottom: 1px solid #30363d;
+            background: #21262d;
+            color: #f0f6fc;
+        }
+        details {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 14px;
+        }
+        summary {
             cursor: pointer;
             font-weight: bold;
-            color: var(--accent-blue);
-        }}
-        .badge {{
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.85em;
-        }}
-        .badge-win {{ background-color: rgba(46, 160, 67, 0.2); color: #3fb950; border: 1px solid #2ea043; }}
-        .highlight {{ color: var(--accent-gold); }}
+            color: #58a6ff;
+            font-size: 1.1em;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header-bar">
+        <div class="header-box">
             <div>
-                <h1 style="color: var(--text-bright); margin: 0 0 5px 0;">🏇 HKJC 高頻量化決策儀表板</h1>
-                <span style="color: #8b949e; font-size: 0.9em;">機構級自適應注單與環境偏差校準系統</span>
+                <h1 style="color: #f0f6fc; margin: 0 0 6px 0;">🏇 HKJC 高頻量化決策儀表板</h1>
+                <span style="color: #8b949e;">Harville 價值邊際 + IoT 微氣象跑道偏置引擎</span>
             </div>
             <div>
-                <span class="live-tag"><span class="live-dot"></span> 系統最後即時更新：{now_str} (HKT)</span>
+                <span class="live-tag">🟢 系統最後更新：2026-09-07 01:29:27 (HKT)</span>
             </div>
         </div>
 
-        <!-- 當前備戰狀態 -->
         <div class="card">
-            <h3 style="color: var(--accent-blue); margin-top: 0;">🎯 當前監控賽事日：週三跑馬地 (HV) 夜賽</h3>
-            <p><strong>物理感測器預設：</strong> 跑馬地短直路 (312米) | 轉彎離心力懲罰係數 0.88 | 內檔(1-3檔)保護優勢 1.15x</p>
-            <p><strong>環境監測狀態：</strong> 跑道物聯網土壤水份與分段風速儀待命中（將於開售時自動鎖定）。</p>
+            <h3 style="color: #58a6ff; margin-top: 0;">🎯 下個賽馬日預備：2026-09-09 跑馬地 (HV) 夜賽</h3>
+            <p>➜ <strong>跑道規格：</strong> 谷草急彎短直路 (312米) | 轉彎離心力懲罰係數 0.88 | 內檔(1-3檔)保護優勢 1.15x</p>
+            <p>➜ <strong>微氣象連線：</strong> 官方土壤含水率 (soilVolumeticWaterContent) 與分段風速儀待命中。</p>
         </div>
 
-        <!-- 歷史存檔專區 -->
         <div class="card">
-            <h3 style="color: var(--text-bright); margin-top: 0;">📜 歷史賽事回測與投注策略存檔庫</h3>
-            <p style="color: #8b949e; font-size: 0.9em;">所有完賽日的量化計算、選馬矩陣與實盤派彩均自動永久存檔於此，隨時供賽後覆盤。</p>
+            <h2 style="color: #f0f6fc; margin-top: 0;">📜 歷史賽事回測與投注策略存檔庫</h2>
+            <p style="color: #8b949e;">所有已完賽日之模型計算、高 EV 選馬矩陣與官方派彩全數永久歸檔於此：</p>
             
             <details open>
                 <summary>📁 2026-09-06 沙田開鑼日賽 (全日 10 場量化策略與實盤派彩覆盤)</summary>
-                <div style="margin-top: 15px;">
-                    <p><strong>場地環境：</strong> {historical_meetings['2026-09-06_ST']['track_condition']}</p>
-                    <p><strong>大數據歸因結論：</strong> {historical_meetings['2026-09-06_ST']['summary']}</p>
+                <div style="margin-top: 14px;">
+                    <p><strong>跑道環境：</strong> 好地至快地 (度地儀 2.71 / 微風)</p>
+                    <p><strong>回測大數據總結：</strong> 三甲中冷馬 (5-15倍) 佔比達 46.7%，大冷門 (>15倍) 佔 26.7%，印證過濾負 EV 熱門與捕獲冷腳的數學優勢。</p>
                     <table>
                         <thead>
                             <tr>
@@ -175,18 +108,68 @@ html_content = f"""<!DOCTYPE html>
                                 <th>實盤結算覆盤</th>
                             </tr>
                         </thead>
-                        <tbody>"""
-
-for r in historical_meetings["2026-09-06_ST"]["races"]:
-    html_content += f"""
-                            <tr>
-                                <td>第 {r['race']} 場</td>
-                                <td class="highlight">{r['target']}</td>
-                                <td>{r['legs']}</td>
-                                <td><span class="badge badge-win">{r['verdict']}</span></td>
-                            </tr>"""
-
-html_content += """
+                        <tbody>
+                            
+    <tr>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;">第 1 場</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d; color: #f1e05a; font-weight: bold;">13 同有運 (勝 5.7)</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;">7 嘉嘉友福(15.0), 2 一路精彩(9.3)</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;"><span style="padding: 3px 8px; border-radius: 4px; background: rgba(46, 160, 67, 0.2); color: #3fb950; border: 1px solid #2ea043; font-size: 0.85em;">✅ 命中位置 Q 7-2</span></td>
+    </tr>
+    <tr>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;">第 2 場</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d; color: #f1e05a; font-weight: bold;">1 駿馬之曲 (勝 2.3)</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;">8 紅海旺(13.0), 11 共創歡欣(11.0)</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;"><span style="padding: 3px 8px; border-radius: 4px; background: rgba(46, 160, 67, 0.2); color: #3fb950; border: 1px solid #2ea043; font-size: 0.85em;">🎯 雙軌單 T (1+8+11) 及 位置 Q (1-8) 精確全中</span></td>
+    </tr>
+    <tr>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;">第 3 場</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d; color: #f1e05a; font-weight: bold;">1 嘉應高昇 (勝 1.0)</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;">2 合夥奔馳(107.0), 6 魔術控制(355.0)</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;"><span style="padding: 3px 8px; border-radius: 4px; background: rgba(46, 160, 67, 0.2); color: #3fb950; border: 1px solid #2ea043; font-size: 0.85em;">✅ 單膽第一，大冷配腳雙雙入位置</span></td>
+    </tr>
+    <tr>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;">第 4 場</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d; color: #f1e05a; font-weight: bold;">10 志醒大將 (勝 4.0)</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;">1 君達得(5.5), 7 開心三多(11.0)</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;"><span style="padding: 3px 8px; border-radius: 4px; background: rgba(46, 160, 67, 0.2); color: #3fb950; border: 1px solid #2ea043; font-size: 0.85em;">✅ 鎖定核心價值區</span></td>
+    </tr>
+    <tr>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;">第 5 場</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d; color: #f1e05a; font-weight: bold;">7 光年程祥 (勝 2.7)</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;">5 明德輝煌(6.3), 12 花果猴王(12.0)</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;"><span style="padding: 3px 8px; border-radius: 4px; background: rgba(46, 160, 67, 0.2); color: #3fb950; border: 1px solid #2ea043; font-size: 0.85em;">✅ 命中前二熱門包夾</span></td>
+    </tr>
+    <tr>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;">第 6 場</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d; color: #f1e05a; font-weight: bold;">1 辣得準 (勝 6.2)</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;">3 馬馳登(4.6), 8 開心五月(20.0)</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;"><span style="padding: 3px 8px; border-radius: 4px; background: rgba(46, 160, 67, 0.2); color: #3fb950; border: 1px solid #2ea043; font-size: 0.85em;">✅ 配腳大冷 20倍 跑入第三</span></td>
+    </tr>
+    <tr>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;">第 7 場</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d; color: #f1e05a; font-weight: bold;">6 昇瀧駒 (勝 105.0)</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;">7 樂勝天下(22.0), 9 晒冷(6.5)</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;"><span style="padding: 3px 8px; border-radius: 4px; background: rgba(46, 160, 67, 0.2); color: #3fb950; border: 1px solid #2ea043; font-size: 0.85em;">⚠️ 105倍極端冷門頭馬</span></td>
+    </tr>
+    <tr>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;">第 8 場</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d; color: #f1e05a; font-weight: bold;">1 喜悅歡欣 (勝 3.4)</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;">2 八仟好運(8.7), 8 實力加(8.8)</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;"><span style="padding: 3px 8px; border-radius: 4px; background: rgba(46, 160, 67, 0.2); color: #3fb950; border: 1px solid #2ea043; font-size: 0.85em;">🎯 命中 5-15倍核心配腳池</span></td>
+    </tr>
+    <tr>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;">第 9 場</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d; color: #f1e05a; font-weight: bold;">5 櫻花酒杯 (勝 3.1)</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;">8 非凡豪傑(7.4), 7 同樣美麗(79.0)</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;"><span style="padding: 3px 8px; border-radius: 4px; background: rgba(46, 160, 67, 0.2); color: #3fb950; border: 1px solid #2ea043; font-size: 0.85em;">✅ 鎖定三甲走位</span></td>
+    </tr>
+    <tr>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;">第 10 場</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d; color: #f1e05a; font-weight: bold;">2 寶進 (勝 26.0)</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;">1 威利金箭(4.6), 10 星運少爵(25.0)</td>
+        <td style="padding: 12px; border-bottom: 1px solid #30363d;"><span style="padding: 3px 8px; border-radius: 4px; background: rgba(46, 160, 67, 0.2); color: #3fb950; border: 1px solid #2ea043; font-size: 0.85em;">🎯 26倍冷膽成功跑出</span></td>
+    </tr>
                         </tbody>
                     </table>
                 </div>
@@ -194,15 +177,12 @@ html_content += """
         </div>
     </div>
 </body>
-</html>"""
+</html>
+'''
 
 with open("index.html", "w", encoding="utf-8") as f:
     f.write(html_content)
 
-print(f"✅ index.html 已重新編譯！時間標籤更新為: {now_str}")
-
-# 提交並推送到 GitHub Pages
-subprocess.run(["git", "add", "index.html", "track_memory.json"], check=False)
-subprocess.run(["git", "commit", "-m", f"feat(dashboard): show live timestamp ({now_str}) and archive 2026-09-06 results"], check=False)
+subprocess.run(["git", "add", "index.html"], check=False)
+subprocess.run(["git", "commit", "-m", "chore: auto sync index.html"], check=False)
 subprocess.run(["git", "push", "origin", "main"], check=False)
-print("🎉 儀表板與存檔庫已同步推送到遠端 GitHub Pages！")
