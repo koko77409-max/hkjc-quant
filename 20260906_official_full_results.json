@@ -1,0 +1,1777 @@
+{
+    "1": {
+        "top3": [
+            {
+                "place": 1,
+                "horse_no": "13",
+                "horse_name": "同有運(H349)",
+                "jockey": "袁幸堯",
+                "draw": "5",
+                "finish_time": "1:08.59",
+                "win_odds": "5.7"
+            },
+            {
+                "place": 2,
+                "horse_no": "7",
+                "horse_name": "嘉嘉友福(K456)",
+                "jockey": "布文",
+                "draw": "2",
+                "finish_time": "1:09.04",
+                "win_odds": "15"
+            },
+            {
+                "place": 3,
+                "horse_no": "2",
+                "horse_name": "一路精彩(K354)",
+                "jockey": "何澤堯",
+                "draw": "1",
+                "finish_time": "1:09.11",
+                "win_odds": "9.3"
+            }
+        ],
+        "all_runners": [
+            {
+                "place": 1,
+                "horse_no": "13",
+                "horse_name": "同有運(H349)",
+                "jockey": "袁幸堯",
+                "draw": "5",
+                "finish_time": "1:08.59",
+                "win_odds": "5.7"
+            },
+            {
+                "place": 2,
+                "horse_no": "7",
+                "horse_name": "嘉嘉友福(K456)",
+                "jockey": "布文",
+                "draw": "2",
+                "finish_time": "1:09.04",
+                "win_odds": "15"
+            },
+            {
+                "place": 3,
+                "horse_no": "2",
+                "horse_name": "一路精彩(K354)",
+                "jockey": "何澤堯",
+                "draw": "1",
+                "finish_time": "1:09.11",
+                "win_odds": "9.3"
+            },
+            {
+                "place": 4,
+                "horse_no": "10",
+                "horse_name": "花香月明(K276)",
+                "jockey": "霍宏聲",
+                "draw": "13",
+                "finish_time": "1:09.17",
+                "win_odds": "74"
+            },
+            {
+                "place": 5,
+                "horse_no": "11",
+                "horse_name": "怡昌奇兵(J176)",
+                "jockey": "巴度",
+                "draw": "3",
+                "finish_time": "1:09.29",
+                "win_odds": "6.7"
+            },
+            {
+                "place": 6,
+                "horse_no": "4",
+                "horse_name": "新力驕(J223)",
+                "jockey": "潘頓",
+                "draw": "7",
+                "finish_time": "1:09.36",
+                "win_odds": "2.3"
+            },
+            {
+                "place": 7,
+                "horse_no": "3",
+                "horse_name": "錶之無限(L100)",
+                "jockey": "黃寶妮",
+                "draw": "14",
+                "finish_time": "1:09.41",
+                "win_odds": "17"
+            },
+            {
+                "place": 8,
+                "horse_no": "8",
+                "horse_name": "高感(J515)",
+                "jockey": "艾道拿",
+                "draw": "10",
+                "finish_time": "1:09.52",
+                "win_odds": "37"
+            },
+            {
+                "place": 9,
+                "horse_no": "1",
+                "horse_name": "雙子美麗(L129)",
+                "jockey": "鍾易禮",
+                "draw": "9",
+                "finish_time": "1:09.53",
+                "win_odds": "54"
+            },
+            {
+                "place": 10,
+                "horse_no": "12",
+                "horse_name": "五福星(J099)",
+                "jockey": "梁家俊",
+                "draw": "4",
+                "finish_time": "1:09.56",
+                "win_odds": "41"
+            },
+            {
+                "place": 11,
+                "horse_no": "6",
+                "horse_name": "朗日雪峰(J187)",
+                "jockey": "黃智弘",
+                "draw": "12",
+                "finish_time": "1:09.86",
+                "win_odds": "22"
+            },
+            {
+                "place": 12,
+                "horse_no": "5",
+                "horse_name": "旭能精英(K544)",
+                "jockey": "田泰安",
+                "draw": "8",
+                "finish_time": "1:09.93",
+                "win_odds": "10"
+            },
+            {
+                "place": 13,
+                "horse_no": "14",
+                "horse_name": "神燦金剛(K259)",
+                "jockey": "楊明綸",
+                "draw": "11",
+                "finish_time": "1:09.96",
+                "win_odds": "101"
+            },
+            {
+                "place": 14,
+                "horse_no": "9",
+                "horse_name": "摘星聲升(K390)",
+                "jockey": "奧爾民",
+                "draw": "6",
+                "finish_time": "1:10.08",
+                "win_odds": "149"
+            }
+        ],
+        "dividends": {
+            "獨贏": [
+                {
+                    "combination": "13",
+                    "dividend": "57.50"
+                }
+            ],
+            "位置": [
+                {
+                    "combination": "13",
+                    "dividend": "18.00"
+                }
+            ],
+            "連贏": [
+                {
+                    "combination": "7,13",
+                    "dividend": "495.50"
+                }
+            ],
+            "位置Q": [
+                {
+                    "combination": "7,13",
+                    "dividend": "148.00"
+                }
+            ],
+            "三重彩": [
+                {
+                    "combination": "13,7,2",
+                    "dividend": "7,242.00"
+                }
+            ],
+            "單T": [
+                {
+                    "combination": "2,7,13",
+                    "dividend": "1,433.00"
+                }
+            ]
+        }
+    },
+    "2": {
+        "top3": [
+            {
+                "place": 1,
+                "horse_no": "1",
+                "horse_name": "駿馬之曲(K436)",
+                "jockey": "潘頓",
+                "draw": "2",
+                "finish_time": "0:56.59",
+                "win_odds": "2.3"
+            },
+            {
+                "place": 2,
+                "horse_no": "8",
+                "horse_name": "紅海旺(L098)",
+                "jockey": "黃寶妮",
+                "draw": "1",
+                "finish_time": "0:56.82",
+                "win_odds": "13"
+            },
+            {
+                "place": 3,
+                "horse_no": "11",
+                "horse_name": "共創歡欣(L118)",
+                "jockey": "班德禮",
+                "draw": "4",
+                "finish_time": "0:56.98",
+                "win_odds": "11"
+            }
+        ],
+        "all_runners": [
+            {
+                "place": 1,
+                "horse_no": "1",
+                "horse_name": "駿馬之曲(K436)",
+                "jockey": "潘頓",
+                "draw": "2",
+                "finish_time": "0:56.59",
+                "win_odds": "2.3"
+            },
+            {
+                "place": 2,
+                "horse_no": "8",
+                "horse_name": "紅海旺(L098)",
+                "jockey": "黃寶妮",
+                "draw": "1",
+                "finish_time": "0:56.82",
+                "win_odds": "13"
+            },
+            {
+                "place": 3,
+                "horse_no": "11",
+                "horse_name": "共創歡欣(L118)",
+                "jockey": "班德禮",
+                "draw": "4",
+                "finish_time": "0:56.98",
+                "win_odds": "11"
+            },
+            {
+                "place": 4,
+                "horse_no": "2",
+                "horse_name": "極速神影(L204)",
+                "jockey": "袁幸堯",
+                "draw": "5",
+                "finish_time": "0:57.02",
+                "win_odds": "6"
+            },
+            {
+                "place": 5,
+                "horse_no": "6",
+                "horse_name": "馬寶寶(K586)",
+                "jockey": "奧爾民",
+                "draw": "9",
+                "finish_time": "0:57.38",
+                "win_odds": "7.1"
+            },
+            {
+                "place": 6,
+                "horse_no": "10",
+                "horse_name": "燊輝之星(L067)",
+                "jockey": "鍾易禮",
+                "draw": "7",
+                "finish_time": "0:57.39",
+                "win_odds": "16"
+            },
+            {
+                "place": 7,
+                "horse_no": "4",
+                "horse_name": "日出東方(K552)",
+                "jockey": "梁家俊",
+                "draw": "10",
+                "finish_time": "0:57.45",
+                "win_odds": "12"
+            },
+            {
+                "place": 8,
+                "horse_no": "7",
+                "horse_name": "銀刺勇士(J043)",
+                "jockey": "黃智弘",
+                "draw": "6",
+                "finish_time": "0:57.52",
+                "win_odds": "45"
+            },
+            {
+                "place": 9,
+                "horse_no": "9",
+                "horse_name": "雷神太保(K017)",
+                "jockey": "艾道拿",
+                "draw": "11",
+                "finish_time": "0:57.60",
+                "win_odds": "8.5"
+            },
+            {
+                "place": 10,
+                "horse_no": "5",
+                "horse_name": "團結巴打(L150)",
+                "jockey": "楊明綸",
+                "draw": "3",
+                "finish_time": "0:57.84",
+                "win_odds": "113"
+            },
+            {
+                "place": 11,
+                "horse_no": "3",
+                "horse_name": "一舖掂晒(L105)",
+                "jockey": "田泰安",
+                "draw": "8",
+                "finish_time": "1:19.22",
+                "win_odds": "31"
+            }
+        ],
+        "dividends": {
+            "獨贏": [
+                {
+                    "combination": "1",
+                    "dividend": "23.50"
+                }
+            ],
+            "位置": [
+                {
+                    "combination": "1",
+                    "dividend": "14.00"
+                }
+            ],
+            "連贏": [
+                {
+                    "combination": "1,8",
+                    "dividend": "169.00"
+                }
+            ],
+            "位置Q": [
+                {
+                    "combination": "1,8",
+                    "dividend": "66.50"
+                }
+            ],
+            "三重彩": [
+                {
+                    "combination": "1,8,11",
+                    "dividend": "1,457.00"
+                }
+            ],
+            "單T": [
+                {
+                    "combination": "1,8,11",
+                    "dividend": "472.00"
+                }
+            ]
+        }
+    },
+    "3": {
+        "top3": [
+            {
+                "place": 1,
+                "horse_no": "1",
+                "horse_name": "嘉應高昇(J062)",
+                "jockey": "潘頓",
+                "draw": "1",
+                "finish_time": "1:06.11",
+                "win_odds": "1"
+            },
+            {
+                "place": 2,
+                "horse_no": "2",
+                "horse_name": "合夥奔馳(H408)",
+                "jockey": "楊明綸",
+                "draw": "5",
+                "finish_time": "1:07.35",
+                "win_odds": "107"
+            },
+            {
+                "place": 3,
+                "horse_no": "6",
+                "horse_name": "魔術控制(J333)",
+                "jockey": "蔡明紹",
+                "draw": "3",
+                "finish_time": "1:07.60",
+                "win_odds": "355"
+            }
+        ],
+        "all_runners": [
+            {
+                "place": 1,
+                "horse_no": "1",
+                "horse_name": "嘉應高昇(J062)",
+                "jockey": "潘頓",
+                "draw": "1",
+                "finish_time": "1:06.11",
+                "win_odds": "1"
+            },
+            {
+                "place": 2,
+                "horse_no": "2",
+                "horse_name": "合夥奔馳(H408)",
+                "jockey": "楊明綸",
+                "draw": "5",
+                "finish_time": "1:07.35",
+                "win_odds": "107"
+            },
+            {
+                "place": 3,
+                "horse_no": "6",
+                "horse_name": "魔術控制(J333)",
+                "jockey": "蔡明紹",
+                "draw": "3",
+                "finish_time": "1:07.60",
+                "win_odds": "355"
+            },
+            {
+                "place": 4,
+                "horse_no": "4",
+                "horse_name": "好友心得(H303)",
+                "jockey": "班德禮",
+                "draw": "6",
+                "finish_time": "1:07.84",
+                "win_odds": "220"
+            },
+            {
+                "place": 5,
+                "horse_no": "5",
+                "horse_name": "幸運有您(E356)",
+                "jockey": "潘明輝",
+                "draw": "2",
+                "finish_time": "1:07.88",
+                "win_odds": "235"
+            },
+            {
+                "place": 6,
+                "horse_no": "3",
+                "horse_name": "錶之星河(J343)",
+                "jockey": "田泰安",
+                "draw": "4",
+                "finish_time": "1:07.94",
+                "win_odds": "109"
+            }
+        ],
+        "dividends": {
+            "獨贏": [
+                {
+                    "combination": "1",
+                    "dividend": "10.50"
+                }
+            ],
+            "位置": [
+                {
+                    "combination": "1",
+                    "dividend": "10.10"
+                }
+            ],
+            "連贏": [
+                {
+                    "combination": "1,2",
+                    "dividend": "37.50"
+                }
+            ],
+            "三重彩": [
+                {
+                    "combination": "1,2,6",
+                    "dividend": "355.00"
+                }
+            ],
+            "單T": [
+                {
+                    "combination": "1,2,6",
+                    "dividend": "217.00"
+                }
+            ]
+        }
+    },
+    "4": {
+        "top3": [
+            {
+                "place": 1,
+                "horse_no": "10",
+                "horse_name": "志醒大將(K138)",
+                "jockey": "艾兆禮",
+                "draw": "6",
+                "finish_time": "1:33.91",
+                "win_odds": "4"
+            },
+            {
+                "place": 2,
+                "horse_no": "1",
+                "horse_name": "君達得(H392)",
+                "jockey": "潘頓",
+                "draw": "12",
+                "finish_time": "1:34.05",
+                "win_odds": "5.5"
+            },
+            {
+                "place": 3,
+                "horse_no": "7",
+                "horse_name": "開心三多(H293)",
+                "jockey": "巴度",
+                "draw": "7",
+                "finish_time": "1:34.08",
+                "win_odds": "11"
+            }
+        ],
+        "all_runners": [
+            {
+                "place": 1,
+                "horse_no": "10",
+                "horse_name": "志醒大將(K138)",
+                "jockey": "艾兆禮",
+                "draw": "6",
+                "finish_time": "1:33.91",
+                "win_odds": "4"
+            },
+            {
+                "place": 2,
+                "horse_no": "1",
+                "horse_name": "君達得(H392)",
+                "jockey": "潘頓",
+                "draw": "12",
+                "finish_time": "1:34.05",
+                "win_odds": "5.5"
+            },
+            {
+                "place": 3,
+                "horse_no": "7",
+                "horse_name": "開心三多(H293)",
+                "jockey": "巴度",
+                "draw": "7",
+                "finish_time": "1:34.08",
+                "win_odds": "11"
+            },
+            {
+                "place": 4,
+                "horse_no": "9",
+                "horse_name": "駟跑得(G095)",
+                "jockey": "梁家俊",
+                "draw": "5",
+                "finish_time": "1:34.37",
+                "win_odds": "23"
+            },
+            {
+                "place": 5,
+                "horse_no": "3",
+                "horse_name": "神駒馬靈(J162)",
+                "jockey": "奧爾民",
+                "draw": "14",
+                "finish_time": "1:34.41",
+                "win_odds": "7.5"
+            },
+            {
+                "place": 6,
+                "horse_no": "8",
+                "horse_name": "連連好運(K500)",
+                "jockey": "布文",
+                "draw": "11",
+                "finish_time": "1:34.50",
+                "win_odds": "13"
+            },
+            {
+                "place": 7,
+                "horse_no": "4",
+                "horse_name": "我最好(K502)",
+                "jockey": "鍾易禮",
+                "draw": "9",
+                "finish_time": "1:34.59",
+                "win_odds": "13"
+            },
+            {
+                "place": 8,
+                "horse_no": "13",
+                "horse_name": "快樂之友(K344)",
+                "jockey": "蔡明紹",
+                "draw": "10",
+                "finish_time": "1:34.71",
+                "win_odds": "28"
+            },
+            {
+                "place": 9,
+                "horse_no": "2",
+                "horse_name": "光輝歲月(J508)",
+                "jockey": "霍宏聲",
+                "draw": "2",
+                "finish_time": "1:35.01",
+                "win_odds": "11"
+            },
+            {
+                "place": 10,
+                "horse_no": "11",
+                "horse_name": "知恩圖報(K166)",
+                "jockey": "楊明綸",
+                "draw": "13",
+                "finish_time": "1:35.06",
+                "win_odds": "27"
+            },
+            {
+                "place": 11,
+                "horse_no": "6",
+                "horse_name": "揚威四海(K120)",
+                "jockey": "何澤堯",
+                "draw": "8",
+                "finish_time": "1:35.10",
+                "win_odds": "70"
+            },
+            {
+                "place": 12,
+                "horse_no": "12",
+                "horse_name": "上市魅力(H196)",
+                "jockey": "田泰安",
+                "draw": "3",
+                "finish_time": "1:35.28",
+                "win_odds": "13"
+            },
+            {
+                "place": 13,
+                "horse_no": "14",
+                "horse_name": "幸運同行(J331)",
+                "jockey": "潘明輝",
+                "draw": "4",
+                "finish_time": "1:35.30",
+                "win_odds": "46"
+            },
+            {
+                "place": 14,
+                "horse_no": "5",
+                "horse_name": "堅闖(J015)",
+                "jockey": "艾道拿",
+                "draw": "1",
+                "finish_time": "1:35.32",
+                "win_odds": "10"
+            }
+        ],
+        "dividends": {
+            "獨贏": [
+                {
+                    "combination": "10",
+                    "dividend": "40.00"
+                }
+            ],
+            "位置": [
+                {
+                    "combination": "10",
+                    "dividend": "17.00"
+                }
+            ],
+            "連贏": [
+                {
+                    "combination": "1,10",
+                    "dividend": "126.50"
+                }
+            ],
+            "位置Q": [
+                {
+                    "combination": "1,10",
+                    "dividend": "54.00"
+                }
+            ],
+            "三重彩": [
+                {
+                    "combination": "10,1,7",
+                    "dividend": "1,443.00"
+                }
+            ],
+            "單T": [
+                {
+                    "combination": "1,7,10",
+                    "dividend": "299.00"
+                }
+            ]
+        }
+    },
+    "5": {
+        "top3": [
+            {
+                "place": 1,
+                "horse_no": "7",
+                "horse_name": "光年程祥(K204)",
+                "jockey": "霍宏聲",
+                "draw": "7",
+                "finish_time": "1:08.41",
+                "win_odds": "2.7"
+            },
+            {
+                "place": 2,
+                "horse_no": "5",
+                "horse_name": "明德輝煌(L298)",
+                "jockey": "袁幸堯",
+                "draw": "13",
+                "finish_time": "1:08.50",
+                "win_odds": "6.3"
+            },
+            {
+                "place": 3,
+                "horse_no": "12",
+                "horse_name": "花果猴王(H455)",
+                "jockey": "潘頓",
+                "draw": "8",
+                "finish_time": "1:08.80",
+                "win_odds": "12"
+            }
+        ],
+        "all_runners": [
+            {
+                "place": 1,
+                "horse_no": "7",
+                "horse_name": "光年程祥(K204)",
+                "jockey": "霍宏聲",
+                "draw": "7",
+                "finish_time": "1:08.41",
+                "win_odds": "2.7"
+            },
+            {
+                "place": 2,
+                "horse_no": "5",
+                "horse_name": "明德輝煌(L298)",
+                "jockey": "袁幸堯",
+                "draw": "13",
+                "finish_time": "1:08.50",
+                "win_odds": "6.3"
+            },
+            {
+                "place": 3,
+                "horse_no": "12",
+                "horse_name": "花果猴王(H455)",
+                "jockey": "潘頓",
+                "draw": "8",
+                "finish_time": "1:08.80",
+                "win_odds": "12"
+            },
+            {
+                "place": 4,
+                "horse_no": "13",
+                "horse_name": "戀愛狂(K118)",
+                "jockey": "巴度",
+                "draw": "11",
+                "finish_time": "1:08.94",
+                "win_odds": "56"
+            },
+            {
+                "place": 5,
+                "horse_no": "10",
+                "horse_name": "同喜(J403)",
+                "jockey": "希威森",
+                "draw": "12",
+                "finish_time": "1:09.00",
+                "win_odds": "30"
+            },
+            {
+                "place": 6,
+                "horse_no": "14",
+                "horse_name": "良駒好友(H454)",
+                "jockey": "黃寶妮",
+                "draw": "3",
+                "finish_time": "1:09.00",
+                "win_odds": "11"
+            },
+            {
+                "place": 7,
+                "horse_no": "3",
+                "horse_name": "領駿先鋒(L359)",
+                "jockey": "潘明輝",
+                "draw": "10",
+                "finish_time": "1:09.07",
+                "win_odds": "8.3"
+            },
+            {
+                "place": 8,
+                "horse_no": "8",
+                "horse_name": "歷勝(L199)",
+                "jockey": "何澤堯",
+                "draw": "2",
+                "finish_time": "1:09.10",
+                "win_odds": "8"
+            },
+            {
+                "place": 9,
+                "horse_no": "11",
+                "horse_name": "焦點(H173)",
+                "jockey": "艾兆禮",
+                "draw": "9",
+                "finish_time": "1:09.17",
+                "win_odds": "55"
+            },
+            {
+                "place": 10,
+                "horse_no": "9",
+                "horse_name": "有盈勇士(K271)",
+                "jockey": "鍾易禮",
+                "draw": "14",
+                "finish_time": "1:09.22",
+                "win_odds": "89"
+            },
+            {
+                "place": 11,
+                "horse_no": "2",
+                "horse_name": "多威心得(L305)",
+                "jockey": "班德禮",
+                "draw": "5",
+                "finish_time": "1:09.95",
+                "win_odds": "85"
+            },
+            {
+                "place": 12,
+                "horse_no": "4",
+                "horse_name": "震撼人心(L420)",
+                "jockey": "布文",
+                "draw": "4",
+                "finish_time": "1:10.08",
+                "win_odds": "14"
+            },
+            {
+                "place": 13,
+                "horse_no": "1",
+                "horse_name": "鼓浪好友(J217)",
+                "jockey": "田泰安",
+                "draw": "1",
+                "finish_time": "1:10.50",
+                "win_odds": "11"
+            },
+            {
+                "place": 14,
+                "horse_no": "6",
+                "horse_name": "昇龍戰駒(L330)",
+                "jockey": "梁家俊",
+                "draw": "6",
+                "finish_time": "1:10.68",
+                "win_odds": "50"
+            }
+        ],
+        "dividends": {
+            "獨贏": [
+                {
+                    "combination": "7",
+                    "dividend": "27.00"
+                }
+            ],
+            "位置": [
+                {
+                    "combination": "7",
+                    "dividend": "14.50"
+                }
+            ],
+            "連贏": [
+                {
+                    "combination": "5,7",
+                    "dividend": "101.50"
+                }
+            ],
+            "位置Q": [
+                {
+                    "combination": "5,7",
+                    "dividend": "45.50"
+                }
+            ],
+            "三重彩": [
+                {
+                    "combination": "7,5,12",
+                    "dividend": "1,549.00"
+                }
+            ],
+            "單T": [
+                {
+                    "combination": "5,7,12",
+                    "dividend": "443.00"
+                }
+            ]
+        }
+    },
+    "6": {
+        "top3": [
+            {
+                "place": 1,
+                "horse_no": "1",
+                "horse_name": "辣得準(J520)",
+                "jockey": "艾兆禮",
+                "draw": "13",
+                "finish_time": "1:08.48",
+                "win_odds": "6.2"
+            },
+            {
+                "place": 2,
+                "horse_no": "3",
+                "horse_name": "馬馳登(L133)",
+                "jockey": "潘頓",
+                "draw": "2",
+                "finish_time": "1:08.69",
+                "win_odds": "4.6"
+            },
+            {
+                "place": 3,
+                "horse_no": "8",
+                "horse_name": "開心五月(K016)",
+                "jockey": "鍾易禮",
+                "draw": "8",
+                "finish_time": "1:08.77",
+                "win_odds": "20"
+            }
+        ],
+        "all_runners": [
+            {
+                "place": 1,
+                "horse_no": "1",
+                "horse_name": "辣得準(J520)",
+                "jockey": "艾兆禮",
+                "draw": "13",
+                "finish_time": "1:08.48",
+                "win_odds": "6.2"
+            },
+            {
+                "place": 2,
+                "horse_no": "3",
+                "horse_name": "馬馳登(L133)",
+                "jockey": "潘頓",
+                "draw": "2",
+                "finish_time": "1:08.69",
+                "win_odds": "4.6"
+            },
+            {
+                "place": 3,
+                "horse_no": "8",
+                "horse_name": "開心五月(K016)",
+                "jockey": "鍾易禮",
+                "draw": "8",
+                "finish_time": "1:08.77",
+                "win_odds": "20"
+            },
+            {
+                "place": 4,
+                "horse_no": "14",
+                "horse_name": "金多囍(K272)",
+                "jockey": "班德禮",
+                "draw": "3",
+                "finish_time": "1:08.78",
+                "win_odds": "19"
+            },
+            {
+                "place": 5,
+                "horse_no": "2",
+                "horse_name": "哈羅威(J280)",
+                "jockey": "布文",
+                "draw": "4",
+                "finish_time": "1:08.86",
+                "win_odds": "3"
+            },
+            {
+                "place": 6,
+                "horse_no": "7",
+                "horse_name": "老鼠斑(L233)",
+                "jockey": "黃智弘",
+                "draw": "10",
+                "finish_time": "1:09.06",
+                "win_odds": "12"
+            },
+            {
+                "place": 7,
+                "horse_no": "4",
+                "horse_name": "嘉應駿馬(J439)",
+                "jockey": "田泰安",
+                "draw": "7",
+                "finish_time": "1:09.27",
+                "win_odds": "6.7"
+            },
+            {
+                "place": 8,
+                "horse_no": "10",
+                "horse_name": "鑽飾閃耀(L182)",
+                "jockey": "希威森",
+                "draw": "12",
+                "finish_time": "1:09.37",
+                "win_odds": "120"
+            },
+            {
+                "place": 9,
+                "horse_no": "5",
+                "horse_name": "自力更生(G209)",
+                "jockey": "奧爾民",
+                "draw": "1",
+                "finish_time": "1:09.51",
+                "win_odds": "25"
+            },
+            {
+                "place": 10,
+                "horse_no": "12",
+                "horse_name": "凱旋王者(K240)",
+                "jockey": "梁家俊",
+                "draw": "9",
+                "finish_time": "1:09.58",
+                "win_odds": "12"
+            },
+            {
+                "place": 11,
+                "horse_no": "11",
+                "horse_name": "金津寶駒(L157)",
+                "jockey": "黃寶妮",
+                "draw": "5",
+                "finish_time": "1:09.70",
+                "win_odds": "121"
+            },
+            {
+                "place": 12,
+                "horse_no": "13",
+                "horse_name": "首駿(K189)",
+                "jockey": "巴度",
+                "draw": "14",
+                "finish_time": "1:09.74",
+                "win_odds": "71"
+            },
+            {
+                "place": 13,
+                "horse_no": "9",
+                "horse_name": "天寶威威(L296)",
+                "jockey": "楊明綸",
+                "draw": "6",
+                "finish_time": "1:09.88",
+                "win_odds": "63"
+            },
+            {
+                "place": 14,
+                "horse_no": "6",
+                "horse_name": "火流星(L426)",
+                "jockey": "潘明輝",
+                "draw": "11",
+                "finish_time": "1:09.98",
+                "win_odds": "89"
+            }
+        ],
+        "dividends": {
+            "獨贏": [
+                {
+                    "combination": "1",
+                    "dividend": "62.50"
+                }
+            ],
+            "位置": [
+                {
+                    "combination": "1",
+                    "dividend": "21.50"
+                }
+            ],
+            "連贏": [
+                {
+                    "combination": "1,3",
+                    "dividend": "153.50"
+                }
+            ],
+            "位置Q": [
+                {
+                    "combination": "1,3",
+                    "dividend": "58.50"
+                }
+            ],
+            "三重彩": [
+                {
+                    "combination": "1,3,8",
+                    "dividend": "5,045.00"
+                }
+            ],
+            "單T": [
+                {
+                    "combination": "1,3,8",
+                    "dividend": "1,034.00"
+                }
+            ]
+        }
+    },
+    "7": {
+        "top3": [
+            {
+                "place": 1,
+                "horse_no": "6",
+                "horse_name": "昇瀧駒(J141)",
+                "jockey": "蔡明紹",
+                "draw": "8",
+                "finish_time": "1:20.47",
+                "win_odds": "105"
+            },
+            {
+                "place": 2,
+                "horse_no": "7",
+                "horse_name": "樂勝天下(J540)",
+                "jockey": "潘明輝",
+                "draw": "7",
+                "finish_time": "1:20.48",
+                "win_odds": "22"
+            },
+            {
+                "place": 3,
+                "horse_no": "9",
+                "horse_name": "晒冷(K369)",
+                "jockey": "艾兆禮",
+                "draw": "5",
+                "finish_time": "1:20.56",
+                "win_odds": "6.5"
+            }
+        ],
+        "all_runners": [
+            {
+                "place": 1,
+                "horse_no": "6",
+                "horse_name": "昇瀧駒(J141)",
+                "jockey": "蔡明紹",
+                "draw": "8",
+                "finish_time": "1:20.47",
+                "win_odds": "105"
+            },
+            {
+                "place": 2,
+                "horse_no": "7",
+                "horse_name": "樂勝天下(J540)",
+                "jockey": "潘明輝",
+                "draw": "7",
+                "finish_time": "1:20.48",
+                "win_odds": "22"
+            },
+            {
+                "place": 3,
+                "horse_no": "9",
+                "horse_name": "晒冷(K369)",
+                "jockey": "艾兆禮",
+                "draw": "5",
+                "finish_time": "1:20.56",
+                "win_odds": "6.5"
+            },
+            {
+                "place": 4,
+                "horse_no": "5",
+                "horse_name": "勁沙塵(J514)",
+                "jockey": "巴度",
+                "draw": "3",
+                "finish_time": "1:20.60",
+                "win_odds": "7.6"
+            },
+            {
+                "place": 5,
+                "horse_no": "8",
+                "horse_name": "飛鷹翱翔(H117)",
+                "jockey": "鍾易禮",
+                "draw": "2",
+                "finish_time": "1:20.64",
+                "win_odds": "6"
+            },
+            {
+                "place": 6,
+                "horse_no": "3",
+                "horse_name": "時時歡聲(K350)",
+                "jockey": "潘頓",
+                "draw": "4",
+                "finish_time": "1:20.90",
+                "win_odds": "2.1"
+            },
+            {
+                "place": 7,
+                "horse_no": "1",
+                "horse_name": "太陽勇士(J127)",
+                "jockey": "袁幸堯",
+                "draw": "9",
+                "finish_time": "1:20.99",
+                "win_odds": "14"
+            },
+            {
+                "place": 8,
+                "horse_no": "4",
+                "horse_name": "韋金主(K061)",
+                "jockey": "田泰安",
+                "draw": "6",
+                "finish_time": "1:21.08",
+                "win_odds": "5.7"
+            }
+        ],
+        "dividends": {
+            "獨贏": [
+                {
+                    "combination": "6",
+                    "dividend": "1,052.50"
+                }
+            ],
+            "位置": [
+                {
+                    "combination": "6",
+                    "dividend": "204.50"
+                }
+            ],
+            "連贏": [
+                {
+                    "combination": "6,7",
+                    "dividend": "5,712.50"
+                }
+            ],
+            "位置Q": [
+                {
+                    "combination": "6,7",
+                    "dividend": "971.00"
+                }
+            ],
+            "三重彩": [
+                {
+                    "combination": "6,7,9",
+                    "dividend": "63,744.00"
+                }
+            ],
+            "單T": [
+                {
+                    "combination": "6,7,9",
+                    "dividend": "6,573.00"
+                }
+            ]
+        }
+    },
+    "8": {
+        "top3": [
+            {
+                "place": 1,
+                "horse_no": "1",
+                "horse_name": "喜悅歡欣(L322)",
+                "jockey": "布文",
+                "draw": "5",
+                "finish_time": "1:21.10",
+                "win_odds": "3.4"
+            },
+            {
+                "place": 2,
+                "horse_no": "2",
+                "horse_name": "八仟好運(K582)",
+                "jockey": "艾兆禮",
+                "draw": "13",
+                "finish_time": "1:21.22",
+                "win_odds": "8.7"
+            },
+            {
+                "place": 3,
+                "horse_no": "8",
+                "horse_name": "實力加(K058)",
+                "jockey": "奧爾民",
+                "draw": "11",
+                "finish_time": "1:21.28",
+                "win_odds": "8.8"
+            }
+        ],
+        "all_runners": [
+            {
+                "place": 1,
+                "horse_no": "1",
+                "horse_name": "喜悅歡欣(L322)",
+                "jockey": "布文",
+                "draw": "5",
+                "finish_time": "1:21.10",
+                "win_odds": "3.4"
+            },
+            {
+                "place": 2,
+                "horse_no": "2",
+                "horse_name": "八仟好運(K582)",
+                "jockey": "艾兆禮",
+                "draw": "13",
+                "finish_time": "1:21.22",
+                "win_odds": "8.7"
+            },
+            {
+                "place": 3,
+                "horse_no": "8",
+                "horse_name": "實力加(K058)",
+                "jockey": "奧爾民",
+                "draw": "11",
+                "finish_time": "1:21.28",
+                "win_odds": "8.8"
+            },
+            {
+                "place": 4,
+                "horse_no": "6",
+                "horse_name": "手機錶能(L293)",
+                "jockey": "何澤堯",
+                "draw": "10",
+                "finish_time": "1:21.41",
+                "win_odds": "8.3"
+            },
+            {
+                "place": 5,
+                "horse_no": "9",
+                "horse_name": "金運齊來(L026)",
+                "jockey": "黃寶妮",
+                "draw": "7",
+                "finish_time": "1:21.72",
+                "win_odds": "18"
+            },
+            {
+                "place": 6,
+                "horse_no": "3",
+                "horse_name": "不同世界(K005)",
+                "jockey": "田泰安",
+                "draw": "6",
+                "finish_time": "1:21.83",
+                "win_odds": "13"
+            },
+            {
+                "place": 7,
+                "horse_no": "12",
+                "horse_name": "久久為軍(K231)",
+                "jockey": "鍾易禮",
+                "draw": "14",
+                "finish_time": "1:21.85",
+                "win_odds": "52"
+            },
+            {
+                "place": 8,
+                "horse_no": "7",
+                "horse_name": "錶之翠河(L282)",
+                "jockey": "梁家俊",
+                "draw": "8",
+                "finish_time": "1:21.97",
+                "win_odds": "32"
+            },
+            {
+                "place": 9,
+                "horse_no": "4",
+                "horse_name": "心雄雄(J467)",
+                "jockey": "潘頓",
+                "draw": "2",
+                "finish_time": "1:22.11",
+                "win_odds": "4.8"
+            },
+            {
+                "place": 10,
+                "horse_no": "13",
+                "horse_name": "堅多福(K306)",
+                "jockey": "巴度",
+                "draw": "4",
+                "finish_time": "1:22.12",
+                "win_odds": "37"
+            },
+            {
+                "place": 11,
+                "horse_no": "14",
+                "horse_name": "加州星皓(J132)",
+                "jockey": "蔡明紹",
+                "draw": "3",
+                "finish_time": "1:22.41",
+                "win_odds": "12"
+            },
+            {
+                "place": 12,
+                "horse_no": "5",
+                "horse_name": "威武年代(J451)",
+                "jockey": "霍宏聲",
+                "draw": "12",
+                "finish_time": "1:22.61",
+                "win_odds": "52"
+            },
+            {
+                "place": 13,
+                "horse_no": "10",
+                "horse_name": "金創福威(K002)",
+                "jockey": "楊明綸",
+                "draw": "1",
+                "finish_time": "1:23.04",
+                "win_odds": "18"
+            },
+            {
+                "place": 14,
+                "horse_no": "11",
+                "horse_name": "大勇勝(L331)",
+                "jockey": "希威森",
+                "draw": "9",
+                "finish_time": "1:24.14",
+                "win_odds": "86"
+            }
+        ],
+        "dividends": {
+            "獨贏": [
+                {
+                    "combination": "1",
+                    "dividend": "34.50"
+                }
+            ],
+            "位置": [
+                {
+                    "combination": "1",
+                    "dividend": "16.00"
+                }
+            ],
+            "連贏": [
+                {
+                    "combination": "1,2",
+                    "dividend": "177.50"
+                }
+            ],
+            "位置Q": [
+                {
+                    "combination": "1,2",
+                    "dividend": "70.50"
+                }
+            ],
+            "三重彩": [
+                {
+                    "combination": "1,2,8",
+                    "dividend": "2,177.00"
+                }
+            ],
+            "單T": [
+                {
+                    "combination": "1,2,8",
+                    "dividend": "574.00"
+                }
+            ]
+        }
+    },
+    "9": {
+        "top3": [
+            {
+                "place": 1,
+                "horse_no": "5",
+                "horse_name": "櫻花酒杯(L230)",
+                "jockey": "何澤堯",
+                "draw": "1",
+                "finish_time": "1:20.61",
+                "win_odds": "3.1"
+            },
+            {
+                "place": 2,
+                "horse_no": "8",
+                "horse_name": "非凡豪傑(J445)",
+                "jockey": "班德禮",
+                "draw": "4",
+                "finish_time": "1:20.63",
+                "win_odds": "7.4"
+            },
+            {
+                "place": 3,
+                "horse_no": "7",
+                "horse_name": "同樣美麗(H334)",
+                "jockey": "鍾易禮",
+                "draw": "8",
+                "finish_time": "1:20.63",
+                "win_odds": "79"
+            }
+        ],
+        "all_runners": [
+            {
+                "place": 1,
+                "horse_no": "5",
+                "horse_name": "櫻花酒杯(L230)",
+                "jockey": "何澤堯",
+                "draw": "1",
+                "finish_time": "1:20.61",
+                "win_odds": "3.1"
+            },
+            {
+                "place": 2,
+                "horse_no": "8",
+                "horse_name": "非凡豪傑(J445)",
+                "jockey": "班德禮",
+                "draw": "4",
+                "finish_time": "1:20.63",
+                "win_odds": "7.4"
+            },
+            {
+                "place": 3,
+                "horse_no": "7",
+                "horse_name": "同樣美麗(H334)",
+                "jockey": "鍾易禮",
+                "draw": "8",
+                "finish_time": "1:20.63",
+                "win_odds": "79"
+            },
+            {
+                "place": 4,
+                "horse_no": "4",
+                "horse_name": "友瑩仁(J180)",
+                "jockey": "艾兆禮",
+                "draw": "2",
+                "finish_time": "1:20.85",
+                "win_odds": "6.2"
+            },
+            {
+                "place": 5,
+                "horse_no": "6",
+                "horse_name": "綫路英雄(J428)",
+                "jockey": "潘頓",
+                "draw": "10",
+                "finish_time": "1:20.86",
+                "win_odds": "2.7"
+            },
+            {
+                "place": 6,
+                "horse_no": "2",
+                "horse_name": "超勁赤兔(K312)",
+                "jockey": "潘明輝",
+                "draw": "7",
+                "finish_time": "1:21.03",
+                "win_odds": "20"
+            },
+            {
+                "place": 7,
+                "horse_no": "1",
+                "horse_name": "一生好彩(K114)",
+                "jockey": "布文",
+                "draw": "6",
+                "finish_time": "1:21.50",
+                "win_odds": "10"
+            },
+            {
+                "place": 8,
+                "horse_no": "3",
+                "horse_name": "展雄志(L396)",
+                "jockey": "艾道拿",
+                "draw": "11",
+                "finish_time": "1:21.57",
+                "win_odds": "52"
+            },
+            {
+                "place": 9,
+                "horse_no": "11",
+                "horse_name": "星價(K093)",
+                "jockey": "黃寶妮",
+                "draw": "9",
+                "finish_time": "1:21.78",
+                "win_odds": "88"
+            },
+            {
+                "place": 10,
+                "horse_no": "9",
+                "horse_name": "元朗精英(J272)",
+                "jockey": "楊明綸",
+                "draw": "5",
+                "finish_time": "1:21.81",
+                "win_odds": "37"
+            },
+            {
+                "place": 11,
+                "horse_no": "10",
+                "horse_name": "手到快來(L299)",
+                "jockey": "蔡明紹",
+                "draw": "3",
+                "finish_time": "1:22.32",
+                "win_odds": "64"
+            }
+        ],
+        "dividends": {
+            "獨贏": [
+                {
+                    "combination": "5",
+                    "dividend": "31.00"
+                }
+            ],
+            "位置": [
+                {
+                    "combination": "5",
+                    "dividend": "15.00"
+                }
+            ],
+            "連贏": [
+                {
+                    "combination": "5,8",
+                    "dividend": "106.50"
+                }
+            ],
+            "位置Q": [
+                {
+                    "combination": "5,8",
+                    "dividend": "39.00"
+                }
+            ],
+            "三重彩": [
+                {
+                    "combination": "5,8,7",
+                    "dividend": "11,612.00"
+                }
+            ],
+            "單T": [
+                {
+                    "combination": "5,7,8",
+                    "dividend": "3,531.00"
+                }
+            ]
+        }
+    },
+    "10": {
+        "top3": [
+            {
+                "place": 1,
+                "horse_no": "2",
+                "horse_name": "寶進(K249)",
+                "jockey": "梁家俊",
+                "draw": "12",
+                "finish_time": "1:08.03",
+                "win_odds": "26"
+            },
+            {
+                "place": 2,
+                "horse_no": "1",
+                "horse_name": "威利金箭(L035)",
+                "jockey": "田泰安",
+                "draw": "8",
+                "finish_time": "1:08.13",
+                "win_odds": "4.6"
+            },
+            {
+                "place": 3,
+                "horse_no": "10",
+                "horse_name": "星運少爵(H459)",
+                "jockey": "班德禮",
+                "draw": "13",
+                "finish_time": "1:08.23",
+                "win_odds": "25"
+            }
+        ],
+        "all_runners": [
+            {
+                "place": 1,
+                "horse_no": "2",
+                "horse_name": "寶進(K249)",
+                "jockey": "梁家俊",
+                "draw": "12",
+                "finish_time": "1:08.03",
+                "win_odds": "26"
+            },
+            {
+                "place": 2,
+                "horse_no": "1",
+                "horse_name": "威利金箭(L035)",
+                "jockey": "田泰安",
+                "draw": "8",
+                "finish_time": "1:08.13",
+                "win_odds": "4.6"
+            },
+            {
+                "place": 3,
+                "horse_no": "10",
+                "horse_name": "星運少爵(H459)",
+                "jockey": "班德禮",
+                "draw": "13",
+                "finish_time": "1:08.23",
+                "win_odds": "25"
+            },
+            {
+                "place": 4,
+                "horse_no": "7",
+                "horse_name": "鑽石星空(J275)",
+                "jockey": "巴度",
+                "draw": "1",
+                "finish_time": "1:08.28",
+                "win_odds": "6.1"
+            },
+            {
+                "place": 5,
+                "horse_no": "5",
+                "horse_name": "快活英雄(J346)",
+                "jockey": "黃寶妮",
+                "draw": "11",
+                "finish_time": "1:08.44",
+                "win_odds": "58"
+            },
+            {
+                "place": 6,
+                "horse_no": "3",
+                "horse_name": "天星(K234)",
+                "jockey": "艾道拿",
+                "draw": "10",
+                "finish_time": "1:08.55",
+                "win_odds": "26"
+            },
+            {
+                "place": 7,
+                "horse_no": "8",
+                "horse_name": "金金小子(K180)",
+                "jockey": "艾兆禮",
+                "draw": "6",
+                "finish_time": "1:08.56",
+                "win_odds": "5.7"
+            },
+            {
+                "place": 8,
+                "horse_no": "11",
+                "horse_name": "千杯不醉(K365)",
+                "jockey": "希威森",
+                "draw": "9",
+                "finish_time": "1:08.60",
+                "win_odds": "32"
+            },
+            {
+                "place": 9,
+                "horse_no": "6",
+                "horse_name": "手機錶勁(L099)",
+                "jockey": "何澤堯",
+                "draw": "5",
+                "finish_time": "1:08.90",
+                "win_odds": "7.4"
+            },
+            {
+                "place": 10,
+                "horse_no": "4",
+                "horse_name": "得道猴王(J303)",
+                "jockey": "布文",
+                "draw": "2",
+                "finish_time": "1:09.03",
+                "win_odds": "18"
+            },
+            {
+                "place": 11,
+                "horse_no": "9",
+                "horse_name": "定風波(L428)",
+                "jockey": "黃智弘",
+                "draw": "3",
+                "finish_time": "1:09.79",
+                "win_odds": "63"
+            },
+            {
+                "place": 12,
+                "horse_no": "12",
+                "horse_name": "支付之父(L159)",
+                "jockey": "潘頓",
+                "draw": "7",
+                "finish_time": "1:09.89",
+                "win_odds": "3.5"
+            },
+            {
+                "place": 13,
+                "horse_no": "13",
+                "horse_name": "捷駿(L303)",
+                "jockey": "鍾易禮",
+                "draw": "4",
+                "finish_time": "1:11.80",
+                "win_odds": "136"
+            }
+        ],
+        "dividends": {
+            "獨贏": [
+                {
+                    "combination": "2",
+                    "dividend": "268.00"
+                }
+            ],
+            "位置": [
+                {
+                    "combination": "2",
+                    "dividend": "72.00"
+                }
+            ],
+            "連贏": [
+                {
+                    "combination": "1,2",
+                    "dividend": "738.00"
+                }
+            ],
+            "位置Q": [
+                {
+                    "combination": "1,2",
+                    "dividend": "228.50"
+                }
+            ],
+            "三重彩": [
+                {
+                    "combination": "2,1,10",
+                    "dividend": "28,154.00"
+                }
+            ],
+            "單T": [
+                {
+                    "combination": "1,2,10",
+                    "dividend": "4,639.00"
+                }
+            ]
+        }
+    }
+}
