@@ -1,0 +1,92 @@
+{
+    "going_thresholds": {
+        "F": {
+            "name": "快地",
+            "min": 0.0,
+            "max": 2.5,
+            "front_bias": 1.08,
+            "closer_bias": 0.92
+        },
+        "GF": {
+            "name": "好至快地",
+            "min": 2.5,
+            "max": 2.75,
+            "front_bias": 1.04,
+            "closer_bias": 0.96
+        },
+        "G": {
+            "name": "好地",
+            "min": 2.75,
+            "max": 3.0,
+            "front_bias": 1.0,
+            "closer_bias": 1.0
+        },
+        "GY": {
+            "name": "好至黏地",
+            "min": 3.0,
+            "max": 3.25,
+            "front_bias": 0.95,
+            "closer_bias": 1.05
+        },
+        "Y": {
+            "name": "黏地",
+            "min": 3.25,
+            "max": 3.5,
+            "front_bias": 0.9,
+            "closer_bias": 1.1
+        },
+        "YS": {
+            "name": "黏至軟地",
+            "min": 3.5,
+            "max": 9.99,
+            "front_bias": 0.85,
+            "closer_bias": 1.15
+        }
+    },
+    "course_specs": {
+        "ST": {
+            "A": {
+                "straight": 430,
+                "width": 30.5
+            },
+            "B": {
+                "straight": 430,
+                "width": 26.0
+            },
+            "C": {
+                "straight": 430,
+                "width": 21.3
+            },
+            "C+3": {
+                "straight": 430,
+                "width": 18.3
+            },
+            "AWT": {
+                "straight": 365,
+                "width": 22.8
+            }
+        },
+        "HV": {
+            "A": {
+                "straight": 312,
+                "width": 30.5
+            },
+            "A+2": {
+                "straight": 310,
+                "width": 28.5
+            },
+            "B": {
+                "straight": 338,
+                "width": 26.5
+            },
+            "C": {
+                "straight": 334,
+                "width": 22.5
+            },
+            "C+3": {
+                "straight": 335,
+                "width": 19.5
+            }
+        }
+    }
+}
