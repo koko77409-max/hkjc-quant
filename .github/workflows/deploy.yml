@@ -22,8 +22,17 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Prepare Site Artifacts
+        run: |
+          mkdir -p _site
+          cp index.html _site/
+          # 如有其他靜態檔案需對外展示可一併複製
+          if [ -f "20260906_official_full_results.json" ]; then
+            cp 20260906_official_full_results.json _site/
+          fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -31,8 +40,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # 直接發布根目錄的 index.html，不再依賴 public/ 目錄
-          path: '.'
+          path: '_site'
 
       - name: Deploy to GitHub Pages
         id: deployment
